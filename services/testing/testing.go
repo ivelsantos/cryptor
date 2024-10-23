@@ -2,7 +2,7 @@ package testing
 
 import (
 	"fmt"
-	"github.com/ivelsantos/cryptor/langSimulation"
+	"github.com/ivelsantos/cryptor/lang"
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services/crypt"
 	"log"
@@ -24,12 +24,12 @@ func Testing() error {
 			}
 
 			// Placing the values on the globalStore
-			optPrice := langSimulation.GlobalStore("Price", price)
-			optBotid := langSimulation.GlobalStore("Botid", algo.Id)
-			optTicket := langSimulation.GlobalStore("Ticket", "BTCBRL")
-			optOwner := langSimulation.GlobalStore("Owner", algo.Owner)
+			optPrice := lang.GlobalStore("Price", price)
+			optBotid := lang.GlobalStore("Botid", algo.Id)
+			optTicket := lang.GlobalStore("Ticket", "BTCBRL")
+			optOwner := lang.GlobalStore("Owner", algo.Owner)
 
-			_, err := langSimulation.Parse("", []byte(algo.Buycode), optPrice, optBotid, optTicket, optOwner)
+			_, err := lang.Parse("", []byte(algo.Buycode), optPrice, optBotid, optTicket, optOwner)
 			if err != nil {
 				log.Printf("%v: Parsing error: %v\n", algo.Name, err)
 				continue

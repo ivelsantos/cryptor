@@ -6,9 +6,11 @@ import (
 )
 
 type Account struct {
-	Name      string
-	ApiKey    string
-	SecretKey string
+	Name           string
+	ApiKey         string
+	SecretKey      string
+	ApiKey_test    string
+	SecretKey_test string
 }
 
 func GetAccounts() ([]Account, error) {
@@ -26,7 +28,7 @@ func GetAccounts() ([]Account, error) {
 	for rows.Next() {
 		var account Account
 
-		err := rows.Scan(&account.Name, &account.ApiKey, &account.SecretKey)
+		err := rows.Scan(&account.Name, &account.ApiKey, &account.SecretKey, &account.ApiKey_test, &account.SecretKey_test)
 		if err != nil {
 			return nil, err
 		}
@@ -43,8 +45,8 @@ func GetAccounts() ([]Account, error) {
 
 func InsertAccount(account Account) error {
 	query := `
-		INSERT INTO accounts (name, apikey, secretkey)
-		VALUES (?, ?, ?)
+		INSERT INTO accounts (name, apikey, secretkey, apikey_test, secretkey_test)
+		VALUES (?, ?, ?, ?, ?)
 	`
 
 	stmt, err := db.Prepare(query)
@@ -53,7 +55,7 @@ func InsertAccount(account Account) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(account.Name, account.ApiKey, account.SecretKey)
+	_, err = stmt.Exec(account.Name, account.ApiKey, account.SecretKey, account.ApiKey_test, account.SecretKey_test)
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}

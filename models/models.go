@@ -40,7 +40,9 @@ func createAccountTable(db *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS accounts (
 		name TEXT PRIMARY KEY,
 		apikey TEXT NOT NULL,
-		secretkey TEXT NOT NULL
+		secretkey TEXT NOT NULL,
+		apikey_test TEXT NOT NULL,
+		secretkey_test TEXT NOT NULL
 	) WITHOUT ROWID`
 
 	_, err := db.Exec(query)

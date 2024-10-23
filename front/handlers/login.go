@@ -46,8 +46,10 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	apikey := r.FormValue("apikey")
 	secretkey := r.FormValue("secretkey")
+	apikey_test := r.FormValue("apikey_test")
+	secretkey_test := r.FormValue("secretkey_test")
 
-	account := models.Account{Name: name, ApiKey: apikey, SecretKey: secretkey}
+	account := models.Account{Name: name, ApiKey: apikey, SecretKey: secretkey, ApiKey_test: apikey_test, SecretKey_test: secretkey_test}
 
 	err := models.InsertAccount(account)
 	if err != nil {

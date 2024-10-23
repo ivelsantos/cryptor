@@ -5,6 +5,7 @@
 		"fmt"
 		"strings"
 		"github.com/ivelsantos/cryptor/services/crypt"
+		"github.com/ivelsantos/cryptor/services/testing/operations"
 		)
 
 	type perror struct {
@@ -203,13 +204,29 @@ EOF <- !.
 
 // CRYPTO RELATED //
 
-Action <- Buy / Sell {
+Action <- Buy / Sell / StopLoss / TakeProfit {
 	return nil, nil
 }
 
 Buy <- "Buy()" {
-	// TODO: implement Buy function from Crypt package
-	// TODO: return error
+
+	price, ok := c.globalStore["Price"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve price")
+	}
+	botid, ok := c.globalStore["Botid"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve botid")
+	}
+	ticket, ok := c.globalStore["Ticket"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve ticket")
+	}
+
+	err := operations.Buy(botid.(int), ticket.(string), price.(float64))
+	if err != nil {
+		return nil, err
+	}
 
 	res, ok := c.globalStore["result"]
 	if ok {
@@ -222,8 +239,19 @@ Buy <- "Buy()" {
 }
 
 Sell <- "Sell()" {
-	// TODO: implement Sell function from Crypt package
-	// TODO: return error
+
+	price, ok := c.globalStore["Price"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve price")
+	}
+	botid, ok := c.globalStore["Botid"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve botid")
+	}
+	err := operations.Sell(botid.(int), price.(float64))
+	if err != nil {
+		return nil, err
+	}
 
 	res, ok := c.globalStore["result"]
 	if ok {
@@ -231,6 +259,42 @@ Sell <- "Sell()" {
 		return nil, nil
 	}
 	c.globalStore["result"] = []string{"sell"}
+
+	return nil, nil
+}
+
+StopLoss <- "Stop_loss(" _ res:Number _ ")" {
+	botid, ok := c.globalStore["Botid"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve botid")
+	}
+	price, ok := c.globalStore["Price"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve price")
+	}
+
+	err := operations.StopLoss(res.(float64), botid.(int), price.(float64))
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+TakeProfit <- "Take_profit(" _ res:Number _ ")" {
+	botid, ok := c.globalStore["Botid"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve botid")
+	}
+	price, ok := c.globalStore["Price"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve price")
+	}
+
+	err := operations.TakeProfit(res.(float64), botid.(int), price.(float64))
+	if err != nil {
+		return nil, err
+	}
 
 	return nil, nil
 }
