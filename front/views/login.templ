@@ -1,0 +1,66 @@
+package views
+
+import "github.com/ivelsantos/cryptor/models"
+
+type LoginSettings struct {
+	Accounts []models.Account
+}
+
+templ User(set LoginSettings) {
+	<div class="flex items-center justify-center h-screen">
+		<div class="bg-gray-600 p-16 rounded-lg shadow-xl">
+			<div class="tab-section">
+				<div class="flex flex-wrap gap-1">
+					<button hx-target="#loginForm" hx-get="/user/login/login" class="p-4 rounded-lg text-gray-200 font-bold flex-grow w-20 hover:bg-indigo-500 hover-opacity-40" data-tab-target="#tab1">Login</button>
+					<button hx-target="#loginForm" hx-get="/user/login/register" class="p-4 rounded-lg text-gray-200 font-bold flex-grow w-20 hover:bg-indigo-500 hover-opacity-40" data-tab-target="#tab2">Register</button>
+				</div>
+			</div>
+			<div id="loginForm">
+				@Login(set)
+			</div>
+		</div>
+	</div>
+	<script>
+		const tabs = document.querySelectorAll('[data-tab-target]');
+		tabs[0].classList.add('bg-indigo-600')
+
+		tabs.forEach(tab => {
+			tab.addEventListener('click', ()=>{
+				document.querySelectorAll('.bg-indigo-600').forEach(activeTab => activeTab.classList.remove('bg-indigo-600'));
+				tab.classList.add('bg-indigo-600');
+			})
+		})
+	</script>
+}
+
+templ Login(set LoginSettings) {
+	<div>
+		for _, account := range set.Accounts {
+			<button hx-post={ "/user/login/" + account.Name } class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75">{ account.Name }</button>
+		}
+	</div>
+}
+
+templ Register() {
+	<form class="mt-2" method="POST" action="/user/register">
+		<div class="mt-2 text-gray-100">
+			<label for="name">Account Name:</label>
+			<br/>
+			<input class="rounded text-black px-1" type="text" id="name" name="name"/>
+			<br/>
+		</div>
+		<div class="mt-2 text-gray-100">
+			<label for="apikey">API Key:</label>
+			<br/>
+			<input class="rounded text-black px-1" type="text" id="apikey" name="apikey"/>
+			<br/>
+		</div>
+		<div class="mt-2 text-gray-100">
+			<label for="secretkey">Secret Key:</label>
+			<br/>
+			<input class="rounded text-black px-1" type="password" id="secretkey" name="secretkey"/>
+			<br/>
+		</div>
+		<input class="bg-sky-500 hover:bg-sky-700 text-gray-100 mt-2 px-3 rounded" type="submit" value="Register"/>
+	</form>
+}

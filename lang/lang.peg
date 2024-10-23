@@ -1,0 +1,236 @@
+{
+	package lang
+
+	import( 
+		"fmt"
+		"strings"
+		"github.com/ivelsantos/cryptor/services/crypt"
+		)
+
+	type perror struct {
+		erro string
+	}
+	func (p perror) Error() string {
+		return p.erro
+	}
+	func newPerror(desc string) perror{
+		return perror{desc}
+	}
+
+	var ops = map[string]func(any, any) any {
+		"!=": func(l, r any) any {
+			return l != r
+		},
+		"==": func(l, r any) any {
+			return l == r
+		},
+		">": func(l, r any) any {
+			return l.(float64) > r.(float64)
+		},
+		">=": func(l, r any) any {
+			return l.(float64) >= r.(float64)
+		},
+		"<": func(l, r any) any {
+			return l.(float64) < r.(float64)
+		},
+		"<=": func(l, r any) any {
+			return l.(float64) <= r.(float64)
+		},
+	    "+": func(l, r any) any {
+	        return l.(float64) + r.(float64)
+	    },
+	    "-": func(l, r any) any {
+	        return l.(float64) - r.(float64)
+	    },
+	    "*": func(l, r any) any {
+	        return l.(float64) * r.(float64)
+	    },
+	    "/": func(l, r any) any {
+	        return l.(float64) / r.(float64)
+	    },
+	}
+
+	func toAnySlice(v any) []any {
+	    if v == nil {
+	        return nil
+	    }
+	    return v.([]any)
+	}
+
+	func eval(first, rest any) any {
+	    l := first
+	    restSl := toAnySlice(rest)
+	    for _, v := range restSl {
+	        restExpr := toAnySlice(v)
+	        r := restExpr[3]
+	        op := restExpr[1].(string)
+	        l = ops[op](l, r)
+	    }
+	    return l
+	}
+}
+
+
+// OPERATIONS //
+
+Input <- ( _ Stmt _ )+ {
+	res, ok := c.globalStore["result"]
+	if ok {
+		return res.([]string), nil
+	}
+	return []string{} , nil
+}
+
+Stmt <- ( Set / Cond / Action ) {
+	return nil, nil
+}
+
+Cond <-"if" _ expr:Expr _ !{
+	res, ok := expr.(bool)
+	if !ok {
+		return true, fmt.Errorf("Expr should return a bool")
+	}
+	return res, nil
+} ( !("end") . )* "end" {
+	return nil, nil
+}  / "if" _ Expr _ ( Stmt _ )* "end" {
+	return nil, nil
+}
+
+Set <- "let" _ ident:Ident _ '=' _ expr:Expr _ {
+	_, ok := c.globalStore[ident.(string)]
+	if ok {
+		return "", newPerror("Variable '"+ident.(string)+"' already set")
+	}
+	c.globalStore[ident.(string)] = expr
+	return expr, nil
+}
+
+Expr <- first:Equality {
+	return first, nil
+}
+
+Equality <- first:Comparation rest:( _ EquOp _ Comparation )* _ {
+	return eval(first, rest), nil
+}
+
+Comparation <- first:Term rest:( _ CompOp _ Term)* _ {
+	return eval(first, rest), nil
+}
+
+Term <- _ first:Factor rest:( _ AddOp _ Factor )* _ {
+    return eval(first, rest), nil
+}
+
+Factor <- first:Grouping rest:( _ MulOp _ Grouping )* {
+    return eval(first, rest), nil
+}
+
+Grouping <- '(' expr:Expr ')' {
+    return expr, nil
+} / first:Primary {
+    return first, nil
+}
+
+Primary <- primary:( Number / Bool / Var / Function / Values ) {
+	return primary, nil
+}
+
+
+// OPERATORS //
+EquOp <- ( "!=" / "==" ) {
+	return string(c.text), nil
+}
+
+CompOp <- ( ">=" / ">" / "<=" / "<" ) {
+	return string(c.text), nil
+}
+
+AddOp <- ( '+' / '-' ) {
+    return string(c.text), nil
+}
+
+MulOp <- ( '*' / '/' ) {
+    return string(c.text), nil
+}
+
+Number <- [+-]?[0-9]+([.][0-9]*)? {
+    return strconv.ParseFloat(string(c.text), 64)
+}
+
+Values <- '@'[a-zA-Z]+[0-9a-zA-Z_]* {
+	//TODO
+	key := string(c.text)
+	val, ok := crypt.GetCryptValue(key)
+	if !ok {
+		return nil, fmt.Errorf("Value unknown: %s", key)
+	}
+	return val, nil
+}
+
+Function <- '@'[a-zA-Z]+[0-9a-zA-Z_]* "(" _ rest:( Expr? ( _ "," _ Expr _ )*) ")" {
+	funcName := strings.Split(string(c.text), "(")[0]
+	val, err := crypt.GetFuncValue(funcName, rest)
+	if err != nil {
+		return nil, err
+	}
+	return val, nil
+}
+
+Ident <- [a-zA-Z]+[0-9a-zA-Z_]* {
+	return string(c.text), nil
+}
+
+Var <- first:Ident {
+	expr, ok := c.globalStore[first.(string)]
+	if !ok {
+		return "", newPerror("Variable '"+first.(string)+ "' not defined")
+	}
+	return expr, nil
+}
+
+Bool <- "true" {
+	return true, nil
+} / "false" {
+	return false, nil
+}
+
+_ "whitespace" <- [ \n\t\r]*
+
+EOF <- !.
+
+
+
+// CRYPTO RELATED //
+
+Action <- Buy / Sell {
+	return nil, nil
+}
+
+Buy <- "Buy()" {
+	// TODO: implement Buy function from Crypt package
+	// TODO: return error
+
+	res, ok := c.globalStore["result"]
+	if ok {
+		c.globalStore["result"] = append(res.([]string), "buy")
+		return nil, nil
+	}
+	c.globalStore["result"] = []string{"buy"}
+
+	return nil, nil
+}
+
+Sell <- "Sell()" {
+	// TODO: implement Sell function from Crypt package
+	// TODO: return error
+
+	res, ok := c.globalStore["result"]
+	if ok {
+		c.globalStore["result"] = append(res.([]string), "sell")
+		return nil, nil
+	}
+	c.globalStore["result"] = []string{"sell"}
+
+	return nil, nil
+}

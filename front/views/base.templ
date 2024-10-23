@@ -1,0 +1,20 @@
+package views
+
+templ Base(children ...templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Algor</title>
+			// <link href="/assets/css/tailwind.css" rel="stylesheet"/>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script src="/assets/htmx.min.js"></script>
+		</head>
+		<body class="bg-gradient-to-r from-slate-400 to-slate-700">
+				for _, child := range children {
+					@child
+				}
+		</body>
+	</html>
+}

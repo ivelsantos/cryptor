@@ -1,0 +1,13 @@
+{
+  "name": "mytempl",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tailwindcss build -o assets/css/tailwind.css",
+    "watch": "tailwindcss build -o assets/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

@@ -1,0 +1,58 @@
+package views
+
+import (
+	"github.com/ivelsantos/cryptor/models"
+	"strconv"
+)
+
+type HomeSettings struct {
+	User  string
+	Algos []models.Algor
+}
+
+templ Home(set HomeSettings) {
+	<style type="text/css">
+		tr.htmx-swapping td {
+		  opacity: 0;
+		  transition: opacity 1s ease-out;
+		}
+	</style>
+	<div class="m-4">
+		<h1 class="text-xl font-bold">Home</h1>
+		<p>
+			Olá { set.User }
+		</p>
+		<div class="flex mt-4">
+			@algoTable(set)
+			<div></div>
+		</div>
+		<br/>
+		<a href="/editor" method="GET" class="bg-blue-500 text-white font-bold mx-2 py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50">Create Algo</a>
+		<a href="/user/logout" method="GET" class="bg-blue-500 text-white font-bold mx-2 py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50">Logout</a>
+	</div>
+}
+
+templ algoTable(set HomeSettings) {
+	<div class="overflow-x-auto">
+		<table class="min-w-full divide-y-2 divide-gray-200 text-sm">
+			<thead>
+				<tr>
+					<th class="whitespace-nowrap px-4 py-2 text-base text-gray-900">Name</th>
+					<th class="whitespace-nowrap px-4 py-2 text-base text-gray-900">State</th>
+					<th class="px-4 py-2"></th>
+				</tr>
+			</thead>
+			<tbody hx-target="closest tr" hx-swap="outerHTML swap:0.3s" class="divide-y divide-gray-200">
+				for _, algo := range set.Algos {
+					<tr>
+						<td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{ algo.Name }</td>
+						<td class="whitespace-nowrap px-4 py-2 text-gray-900">{ algo.State }</td>
+						<td class="whitespace-nowrap px-4 py-2">
+							<button hx-delete={ "/editor/delete/" + strconv.Itoa(algo.Id) } class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75">Delete</button>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
