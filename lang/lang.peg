@@ -251,7 +251,7 @@ Sell <- "Sell()" {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
 	algo := algoAny.(models.Algor)
-	err := operations.Sell(algo.Id, price.(float64))
+	err := operations.Sell(algo.Id, price.(float64), algo.State)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +277,7 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" {
 		return nil, fmt.Errorf("Unable to retrieve price")
 	}
 
-	err := operations.StopLoss(res.(float64), algo.Id, price.(float64))
+	err := operations.StopLoss(res.(float64), algo.Id, price.(float64), algo.State)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ TakeProfit <- "Take_profit(" _ res:Number _ ")" {
 		return nil, fmt.Errorf("Unable to retrieve price")
 	}
 
-	err := operations.TakeProfit(res.(float64), algo.Id, price.(float64))
+	err := operations.TakeProfit(res.(float64), algo.Id, price.(float64), algo.State)
 	if err != nil {
 		return nil, err
 	}
