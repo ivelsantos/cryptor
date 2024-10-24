@@ -9,13 +9,12 @@ import (
 )
 
 func Trading() error {
-
 	for {
 
 		err := crypt.InitCrypt()
-		algos, err := models.GetAlgosState("testing")
+		algos, err := models.GetAllAlgos()
 		if err != nil {
-			return fmt.Errorf("Failed to get testing algor: %v", err)
+			return fmt.Errorf("Failed to get algos: %v", err)
 		}
 
 		for _, algo := range algos {
@@ -25,12 +24,11 @@ func Trading() error {
 			}
 
 			// Placing the values on the globalStore
+			optAlgo := lang.GlobalStore("Algo", algo)
 			optPrice := lang.GlobalStore("Price", price)
-			optBotid := lang.GlobalStore("Botid", algo.Id)
 			optTicket := lang.GlobalStore("Ticket", "BTCBRL")
-			optOwner := lang.GlobalStore("Owner", algo.Owner)
 
-			_, err := lang.Parse("", []byte(algo.Buycode), optPrice, optBotid, optTicket, optOwner)
+			_, err := lang.Parse("", []byte(algo.Buycode), optPrice, optTicket, optAlgo)
 			if err != nil {
 				log.Printf("%v: Parsing error: %v\n", algo.Name, err)
 				continue

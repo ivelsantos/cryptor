@@ -1,29 +1,37 @@
 package operations
 
 import (
-	"github.com/ivelsantos/cryptor/models"
+	"fmt"
 	"log"
 	"time"
+
+	"github.com/ivelsantos/cryptor/models"
 )
 
-func Buy(botid int, ticket string, price float64) error {
-	algos, err := models.GetTesting(botid)
-	if err != nil {
-		return err
-	}
-	if len(algos) != 0 {
+func Buy(botid int, ticket string, price float64, mode string) error {
+	switch mode {
+	case "testing":
+		algos, err := models.GetTesting(botid)
+		if err != nil {
+			return err
+		}
+		if len(algos) != 0 {
+			return nil
+		}
+		current := int(time.Now().Unix())
+
+		err = models.InsertTestingBuy(botid, ticket, price, current)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("TESTING: Buy %s at price %v\n", ticket, price)
 		return nil
+	case "new", "live":
+		return nil
+	default:
+		return fmt.Errorf("Unknown mode\n")
 	}
-	current := int(time.Now().Unix())
-
-	err = models.InsertTestingBuy(botid, ticket, price, current)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("TESTING: Buy %s at price %v\n", ticket, price)
-
-	return nil
 }
 
 func Sell(botid int, price float64) error {

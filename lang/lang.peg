@@ -5,7 +5,8 @@
 		"fmt"
 		"strings"
 		"github.com/ivelsantos/cryptor/services/crypt"
-		"github.com/ivelsantos/cryptor/services/testing/operations"
+		"github.com/ivelsantos/cryptor/services/trading/operations"
+		"github.com/ivelsantos/cryptor/models"
 		)
 
 	type perror struct {
@@ -214,16 +215,17 @@ Buy <- "Buy()" {
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve price")
 	}
-	botid, ok := c.globalStore["Botid"]
-	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve botid")
-	}
 	ticket, ok := c.globalStore["Ticket"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve ticket")
 	}
+	algoAny, ok := c.globalStore["Algo"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve algo")
+	}
+	algo := algoAny.(models.Algor)
 
-	err := operations.Buy(botid.(int), ticket.(string), price.(float64))
+	err := operations.Buy(algo.Id, ticket.(string), price.(float64), algo.State)
 	if err != nil {
 		return nil, err
 	}
@@ -244,11 +246,12 @@ Sell <- "Sell()" {
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve price")
 	}
-	botid, ok := c.globalStore["Botid"]
+	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve botid")
+		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
-	err := operations.Sell(botid.(int), price.(float64))
+	algo := algoAny.(models.Algor)
+	err := operations.Sell(algo.Id, price.(float64))
 	if err != nil {
 		return nil, err
 	}
@@ -264,16 +267,17 @@ Sell <- "Sell()" {
 }
 
 StopLoss <- "Stop_loss(" _ res:Number _ ")" {
-	botid, ok := c.globalStore["Botid"]
+	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve botid")
+		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
+	algo := algoAny.(models.Algor)
 	price, ok := c.globalStore["Price"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve price")
 	}
 
-	err := operations.StopLoss(res.(float64), botid.(int), price.(float64))
+	err := operations.StopLoss(res.(float64), algo.Id, price.(float64))
 	if err != nil {
 		return nil, err
 	}
@@ -282,16 +286,17 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" {
 }
 
 TakeProfit <- "Take_profit(" _ res:Number _ ")" {
-	botid, ok := c.globalStore["Botid"]
+	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve botid")
+		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
+	algo := algoAny.(models.Algor)
 	price, ok := c.globalStore["Price"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve price")
 	}
 
-	err := operations.TakeProfit(res.(float64), botid.(int), price.(float64))
+	err := operations.TakeProfit(res.(float64), algo.Id, price.(float64))
 	if err != nil {
 		return nil, err
 	}

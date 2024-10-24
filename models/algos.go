@@ -64,11 +64,11 @@ func GetAlgos(owner string) ([]Algor, error) {
 	return algos, nil
 }
 
-func GetAlgosState(state string) ([]Algor, error) {
-	query := `SELECT * FROM algos WHERE state = ?`
+func GetAllAlgos() ([]Algor, error) {
+	query := `SELECT * FROM algos`
 	var algos []Algor
 
-	rows, err := db.Query(query, state)
+	rows, err := db.Query(query)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return nil, fmt.Errorf("Failed to retrieve algos: %v", err)
