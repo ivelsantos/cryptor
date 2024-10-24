@@ -1,4 +1,4 @@
-package testing
+package trading
 
 import (
 	"fmt"
@@ -8,7 +8,8 @@ import (
 	"log"
 )
 
-func Testing() error {
+func Trading() error {
+
 	for {
 
 		err := crypt.InitCrypt()
