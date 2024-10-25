@@ -20,6 +20,9 @@ func Buy(algo models.Algor, ticket string, price float64) error {
 			return nil
 		}
 
+		account, err := models.GetAccountByName(algo.Owner)
+		_ = account
+
 		current := int(time.Now().Unix())
 
 		err = models.InsertTestingBuy(algo.Id, ticket, price, current)

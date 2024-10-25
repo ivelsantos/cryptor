@@ -43,6 +43,23 @@ func GetAccounts() ([]Account, error) {
 	return accounts, nil
 }
 
+func GetAccountByName(name string) (Account, error) {
+	query := `SELECT * FROM accounts WHERE name = ?`
+	var account Account
+
+	row := db.QueryRow(query, name)
+
+	err := row.Scan(&account.Name, &account.ApiKey, &account.SecretKey, &account.ApiKey_test, &account.SecretKey_test)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return account, fmt.Errorf("No account found with name: %s", name)
+		}
+		return account, fmt.Errorf("Failed to retrieve account: %v", err)
+	}
+
+	return account, nil
+}
+
 func InsertAccount(account Account) error {
 	query := `
 		INSERT INTO accounts (name, apikey, secretkey, apikey_test, secretkey_test)
