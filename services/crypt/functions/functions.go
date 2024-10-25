@@ -6,11 +6,6 @@ import (
 	"github.com/adshao/go-binance/v2"
 )
 
-func cryptMean(timeWindow int) (float64, error) {
-	_ = timeWindow
-	return 0, nil
-}
-
 func GetKlines(symbol string, apiKey string, secretKey string) ([]binance.Kline, error) {
 	var klineData []binance.Kline
 
