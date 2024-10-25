@@ -5,22 +5,24 @@ import (
 	"log"
 	"time"
 
+	// "github.com/adshao/go-binance/v2"
 	"github.com/ivelsantos/cryptor/models"
 )
 
-func Buy(botid int, ticket string, price float64, mode string) error {
-	switch mode {
+func Buy(algo models.Algor, ticket string, price float64) error {
+	switch algo.State {
 	case "testing":
-		algos, err := models.GetTesting(botid)
+		transactions, err := models.GetTesting(algo.Id)
 		if err != nil {
 			return err
 		}
-		if len(algos) != 0 {
+		if len(transactions) != 0 {
 			return nil
 		}
+
 		current := int(time.Now().Unix())
 
-		err = models.InsertTestingBuy(botid, ticket, price, current)
+		err = models.InsertTestingBuy(algo.Id, ticket, price, current)
 		if err != nil {
 			return err
 		}
@@ -34,22 +36,22 @@ func Buy(botid int, ticket string, price float64, mode string) error {
 	}
 }
 
-func Sell(botid int, price float64, mode string) error {
-	switch mode {
+func Sell(algo models.Algor, price float64) error {
+	switch algo.State {
 	case "testing":
-		algos, err := models.GetTesting(botid)
+		transactions, err := models.GetTesting(algo.Id)
 		if err != nil {
 			return err
 		}
 
-		for _, algo := range algos {
+		for _, transaction := range transactions {
 			current := int(time.Now().Unix())
 
-			err = models.InsertTestingSell(algo.Id, price, current)
+			err = models.InsertTestingSell(transaction.Id, price, current)
 			if err != nil {
 				return err
 			}
-			log.Printf("TESTING: Sell %s at price %v\n", algo.Ticket, price)
+			log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
 		}
 
 		return nil
@@ -60,23 +62,23 @@ func Sell(botid int, price float64, mode string) error {
 	}
 }
 
-func StopLoss(stop float64, botid int, price float64, mode string) error {
-	switch mode {
+func StopLoss(algo models.Algor, stop float64, price float64) error {
+	switch algo.State {
 	case "testing":
-		algos, err := models.GetTesting(botid)
+		transactions, err := models.GetTesting(algo.Id)
 		if err != nil {
 			return err
 		}
 
-		for _, algo := range algos {
-			sellPrice := algo.Buyprice - (stop * algo.Buyprice)
+		for _, transaction := range transactions {
+			sellPrice := transaction.Buyprice - (stop * transaction.Buyprice)
 			if price <= sellPrice {
 				current := int(time.Now().Unix())
-				err = models.InsertTestingSell(algo.Id, price, current)
+				err = models.InsertTestingSell(transaction.Id, price, current)
 				if err != nil {
 					return err
 				}
-				log.Printf("TESTING: Sell %s at price %v\n", algo.Ticket, price)
+				log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
 			}
 
 		}
@@ -89,23 +91,23 @@ func StopLoss(stop float64, botid int, price float64, mode string) error {
 	}
 }
 
-func TakeProfit(take float64, botid int, price float64, mode string) error {
-	switch mode {
+func TakeProfit(algo models.Algor, take float64, price float64) error {
+	switch algo.State {
 	case "testing":
-		algos, err := models.GetTesting(botid)
+		transactions, err := models.GetTesting(algo.Id)
 		if err != nil {
 			return err
 		}
 
-		for _, algo := range algos {
-			sellPrice := algo.Buyprice + (take * algo.Buyprice)
+		for _, transaction := range transactions {
+			sellPrice := transaction.Buyprice + (take * transaction.Buyprice)
 			if price >= sellPrice {
 				current := int(time.Now().Unix())
-				err = models.InsertTestingSell(algo.Id, price, current)
+				err = models.InsertTestingSell(transaction.Id, price, current)
 				if err != nil {
 					return err
 				}
-				log.Printf("TESTING: Sell %s at price %v\n", algo.Ticket, price)
+				log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
 			}
 		}
 
