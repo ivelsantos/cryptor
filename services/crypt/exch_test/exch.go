@@ -1,4 +1,4 @@
-package exch
+package exch_test
 
 import (
 	"github.com/adshao/go-binance/v2"
