@@ -3,12 +3,13 @@ package operations
 import (
 	"fmt"
 	"log"
-	"time"
+	// "time"
 
 	"github.com/ivelsantos/cryptor/models"
+	"github.com/ivelsantos/cryptor/services/crypt/testnet"
 )
 
-func Buy(algo models.Algor, ticket string, price float64) error {
+func Buy(algo models.Algor, base_asset string, quote_asset string, price float64) error {
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTesting(algo.Id)
@@ -20,16 +21,21 @@ func Buy(algo models.Algor, ticket string, price float64) error {
 		}
 
 		account, err := models.GetAccountByName(algo.Owner)
-		_ = account
+		brl := testnet.GetAccountQuote(account.ApiKey_test, account.SecretKey_test)
 
-		current := int(time.Now().Unix())
+		tb := models.TestingBuy{Botid: algo.Id, Baseasset: base_asset, Quoteasset: quote_asset}
+		// tb.Orderid = ...
+		// tb.Orderstatus = ...
+		// tb.Buyprice = ...
+		// tb.Buyquantity = ...
+		// tb.Buytime = ...
 
-		err = models.InsertTestingBuy(algo.Id, ticket, price, current)
+		err = models.InsertTestingBuy(tb)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("TESTING: Buy %s at price %v\n", ticket, price)
+		log.Printf("TESTING: Buy %s at price %v\n", base_asset+quote_asset, price)
 		return nil
 	case "new", "live":
 		return nil
@@ -47,9 +53,15 @@ func Sell(algo models.Algor, price float64) error {
 		}
 
 		for _, transaction := range transactions {
-			current := int(time.Now().Unix())
+			// current := int(time.Now().Unix())
 
-			err = models.InsertTestingSell(transaction.Id, price, current)
+			ts := models.TestingSell{Entryid: transaction.Id}
+			// ts.Orderstatus = ...
+			// ts.Sellprice = ...
+			// ts.Sellquantity = ...
+			// ts.Selltime = ...
+
+			err = models.InsertTestingSell(ts)
 			if err != nil {
 				return err
 			}
@@ -75,8 +87,14 @@ func StopLoss(algo models.Algor, stop float64, price float64) error {
 		for _, transaction := range transactions {
 			sellPrice := transaction.Buyprice - (stop * transaction.Buyprice)
 			if price <= sellPrice {
-				current := int(time.Now().Unix())
-				err = models.InsertTestingSell(transaction.Id, price, current)
+				// current := int(time.Now().Unix())
+
+				ts := models.TestingSell{Entryid: transaction.Id}
+				// ts.Orderstatus = ...
+				// ts.Sellprice = ...
+				// ts.Sellquantity = ...
+				// ts.Selltime = ...
+				err = models.InsertTestingSell(ts)
 				if err != nil {
 					return err
 				}
@@ -104,8 +122,15 @@ func TakeProfit(algo models.Algor, take float64, price float64) error {
 		for _, transaction := range transactions {
 			sellPrice := transaction.Buyprice + (take * transaction.Buyprice)
 			if price >= sellPrice {
-				current := int(time.Now().Unix())
-				err = models.InsertTestingSell(transaction.Id, price, current)
+				// current := int(time.Now().Unix())
+
+				ts := models.TestingSell{Entryid: transaction.Id}
+				// ts.Orderstatus = ...
+				// ts.Sellprice = ...
+				// ts.Sellquantity = ...
+				// ts.Selltime = ...
+
+				err = models.InsertTestingSell(ts)
 				if err != nil {
 					return err
 				}

@@ -215,7 +215,11 @@ Buy <- "Buy()" {
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve price")
 	}
-	ticket, ok := c.globalStore["Ticket"]
+	base, ok := c.globalStore["Base"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve ticket")
+	}
+	quote, ok := c.globalStore["Quote"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve ticket")
 	}
@@ -225,7 +229,7 @@ Buy <- "Buy()" {
 	}
 	algo := algoAny.(models.Algor)
 
-	err := operations.Buy(algo, ticket.(string), price.(float64))
+	err := operations.Buy(algo, base.(string), quote.(string), price.(float64))
 	if err != nil {
 		return nil, err
 	}

@@ -77,10 +77,14 @@ func createTestingTable(db *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS testing (
 		id INTEGER PRIMARY KEY,
 		botid INTEGER NOT NULL,
+		orderid INTEGER NOT NULL,
 		ticket TEXT NOT NULL,
+		orderstatus TEXT NOT NULL,
 		buyprice REAL NOT NULL,
+		buyquantity REAL NOT NULL,
 		buytime INTEGER NOT NULL,
 		sellprice REAL,
+		sellquantity REAL,
 		selltime INTEGER
 	)`
 

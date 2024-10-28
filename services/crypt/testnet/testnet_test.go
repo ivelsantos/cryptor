@@ -1,8 +1,10 @@
 package testnet
 
 import (
-	"github.com/ivelsantos/cryptor/models"
+	"strconv"
 	"testing"
+
+	"github.com/ivelsantos/cryptor/models"
 )
 
 func TestBuy(t *testing.T) {
@@ -22,8 +24,24 @@ func TestBuy(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = GetAccount(account.ApiKey_test, account.SecretKey_test)
+	brl, err := GetAccountQuote(account.ApiKey_test, account.SecretKey_test, "BRL")
 	if err != nil {
 		t.Error(err)
 	}
+
+	brl_float, err := strconv.ParseFloat(brl, 64)
+	if err != nil {
+		t.Error(err)
+	}
+
+	quoteOrder := brl_float / 10
+
+	quoteOrderStr := strconv.FormatFloat(quoteOrder, 'f', -1, 64)
+
+	err = Buy(account.ApiKey_test, account.SecretKey_test, "BTCBRL", quoteOrderStr)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 }
