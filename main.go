@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	err := models.InitDB()
+	err := models.InitDB("algor.db")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	// "github.com/adshao/go-binance/v2"
 	"github.com/ivelsantos/cryptor/models"
 )
 

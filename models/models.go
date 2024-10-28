@@ -9,10 +9,10 @@ import (
 
 var db *sql.DB
 
-func InitDB() error {
+func InitDB(filename string) error {
 	var err error
 
-	db, err = sql.Open("sqlite", "algor.db")
+	db, err = sql.Open("sqlite", filename)
 	if err != nil {
 		return err
 	}
