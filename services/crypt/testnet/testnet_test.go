@@ -2,11 +2,15 @@ package testnet
 
 import (
 	"log"
+	"math"
 	"strconv"
 	"testing"
 
+	"github.com/adshao/go-binance/v2"
 	"github.com/ivelsantos/cryptor/models"
 )
+
+var coin string = "USDC"
 
 func TestBuy(t *testing.T) {
 	err := models.InitDB("../../../algor.db")
@@ -25,23 +29,20 @@ func TestBuy(t *testing.T) {
 		t.Error(err)
 	}
 
-	quote := "USDT"
-
-	brl, err := GetAccountQuote(account.ApiKey_test, account.SecretKey_test, quote)
+	asset, err := GetAccountQuote(account.ApiKey_test, account.SecretKey_test, coin)
 	if err != nil {
 		t.Error(err)
 	}
 
-	brl_float, err := strconv.ParseFloat(brl, 64)
+	asset_float, err := strconv.ParseFloat(asset, 64)
 	if err != nil {
 		t.Error(err)
 	}
 
-	quoteOrder := brl_float / 5
-
+	quoteOrder := roundFloat(asset_float/5, 2)
 	quoteOrderStr := strconv.FormatFloat(quoteOrder, 'f', -1, 64)
 
-	order, err := Buy(account.ApiKey_test, account.SecretKey_test, "BTC"+quote, quoteOrderStr)
+	order, err := Buy(account.ApiKey_test, account.SecretKey_test, "BTC"+coin, quoteOrderStr)
 	if err != nil {
 		log.Println("ERROR ON BUY")
 		t.Error(err)
@@ -49,9 +50,10 @@ func TestBuy(t *testing.T) {
 	}
 
 	quantity, _ := strconv.ParseFloat(order.ExecutedQuantity, 64)
-	price := quoteOrder / quantity
+	Cummulative, _ := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
+	price := Cummulative / quantity
 
-	log.Printf("\nInitial account balance: %v\nQuote Order: %v\nQuantity: %v\nPrice: %v\n", brl_float, quoteOrderStr, order.ExecutedQuantity, price)
+	log.Printf("\nInitial account balance: %v\nQuote Order: %v\nQuantity: %v\nPrice: %v\nCommission: %v\n\n", asset_float, quoteOrderStr, order.ExecutedQuantity, price, sumFills(order.Fills))
 
 }
 
@@ -72,10 +74,29 @@ func TestGetBalance(t *testing.T) {
 		t.Error(err)
 	}
 
-	BRL, err := GetAccountQuote(account.ApiKey_test, account.SecretKey_test, "USDT")
+	asset, err := GetAccountQuote(account.ApiKey_test, account.SecretKey_test, coin)
 	if err != nil {
 		t.Error(err)
 	}
 
-	log.Printf("\nUSDT Balance: %v\n\n", BRL)
+	log.Printf("\n%s Balance: %v\n\n", coin, asset)
+}
+
+func sumFills(fills []*binance.Fill) float64 {
+	var sum float64
+
+	for _, fill := range fills {
+		commission, err := strconv.ParseFloat(fill.Commission, 64)
+		if err != nil {
+			return -1
+		}
+		sum += commission
+	}
+
+	return sum
+}
+
+func roundFloat(val float64, precision uint) float64 {
+	ratio := math.Pow(10, float64(precision))
+	return math.Round(val*ratio) / ratio
 }
