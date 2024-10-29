@@ -3,24 +3,21 @@ package testnet
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/adshao/go-binance/v2"
 )
 
-func Buy(apikey, secretkey, symbol, orderquote string) error {
+func Buy(apikey, secretkey, symbol, orderquote string) (*binance.CreateOrderResponse, error) {
 	binance.UseTestnet = true
 	client := binance.NewClient(apikey, secretkey)
 	_ = client
 
-	order, err := client.NewCreateOrderService().Symbol(symbol).Side(binance.SideTypeBuy).Type(binance.OrderTypeMarket).TimeInForce(binance.TimeInForceTypeGTC).QuoteOrderQty(orderquote).Do(context.Background())
+	order, err := client.NewCreateOrderService().Symbol(symbol).Side(binance.SideTypeBuy).Type(binance.OrderTypeMarket).QuoteOrderQty(orderquote).Do(context.Background())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	log.Println(order)
-
-	return nil
+	return order, nil
 }
 
 func GetAccountQuote(apikey, secretkey, quote string) (string, error) {
@@ -32,7 +29,7 @@ func GetAccountQuote(apikey, secretkey, quote string) (string, error) {
 		return "", err
 	}
 
-	brl, err := getCoinBalance("BRL", res.Balances)
+	brl, err := getCoinBalance(quote, res.Balances)
 	if err != nil {
 		return "", err
 	}
