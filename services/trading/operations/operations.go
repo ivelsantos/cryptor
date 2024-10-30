@@ -105,29 +105,46 @@ func Sell(algo models.Algor, price float64) error {
 func StopLoss(algo models.Algor, stop float64, price float64) error {
 	switch algo.State {
 	case "testing":
-		// transactions, err := models.GetTesting(algo.Id)
-		// if err != nil {
-		// 	return err
-		// }
+		transactions, err := models.GetTesting(algo.Id)
+		if err != nil {
+			return err
+		}
 
-		// for _, transaction := range transactions {
-		// 	sellPrice := transaction.Buyvalue - (stop * transaction.Buyvalue)
-		// 	if price <= sellPrice {
-		// 		// current := int(time.Now().Unix())
+		account, err := models.GetAccountByName(algo.Owner)
+		if err != nil {
+			return err
+		}
 
-		// 		ts := models.TestingSell{Entryid: transaction.Id}
-		// 		// ts.Orderstatus = ...
-		// 		// ts.Sellprice = ...
-		// 		// ts.Sellquantity = ...
-		// 		// ts.Selltime = ...
-		// 		err = models.InsertTestingSell(ts)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 		log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
-		// 	}
+		for _, transaction := range transactions {
+			buyprice := transaction.Buyvalue / transaction.Buyquantity
+			sellPrice := buyprice - (stop * buyprice)
 
-		// }
+			if price <= sellPrice {
+
+				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
+				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
+				if err != nil {
+					return nil
+				}
+
+				ts := models.TestingSell{Entryid: transaction.Id}
+				ts.Orderstatus = string(order.Status)
+
+				cum, err := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
+				if err != nil {
+					return err
+				}
+				ts.Sellvalue = cum
+				ts.Selltime = int(order.TransactTime)
+
+				err = models.InsertTestingSell(ts)
+				if err != nil {
+					return err
+				}
+				log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, cum/transaction.Buyquantity)
+			}
+
+		}
 
 		return nil
 	case "new", "live":
@@ -140,30 +157,46 @@ func StopLoss(algo models.Algor, stop float64, price float64) error {
 func TakeProfit(algo models.Algor, take float64, price float64) error {
 	switch algo.State {
 	case "testing":
-		// transactions, err := models.GetTesting(algo.Id)
-		// if err != nil {
-		// 	return err
-		// }
+		transactions, err := models.GetTesting(algo.Id)
+		if err != nil {
+			return err
+		}
 
-		// for _, transaction := range transactions {
-		// 	sellPrice := transaction.Buyvalue + (take * transaction.Buyvalue)
-		// 	if price >= sellPrice {
-		// 		// current := int(time.Now().Unix())
+		account, err := models.GetAccountByName(algo.Owner)
+		if err != nil {
+			return err
+		}
 
-		// 		ts := models.TestingSell{Entryid: transaction.Id}
-		// 		// ts.Orderstatus = ...
-		// 		// ts.Sellprice = ...
-		// 		// ts.Sellquantity = ...
-		// 		// ts.Selltime = ...
+		for _, transaction := range transactions {
+			buyprice := transaction.Buyvalue / transaction.Buyquantity
+			sellPrice := buyprice + (take * buyprice)
 
-		// 		err = models.InsertTestingSell(ts)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 		log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
-		// 	}
-		// }
+			if price >= sellPrice {
 
+				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
+				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
+				if err != nil {
+					return nil
+				}
+
+				ts := models.TestingSell{Entryid: transaction.Id}
+				ts.Orderstatus = string(order.Status)
+
+				cum, err := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
+				if err != nil {
+					return err
+				}
+				ts.Sellvalue = cum
+				ts.Selltime = int(order.TransactTime)
+
+				err = models.InsertTestingSell(ts)
+				if err != nil {
+					return err
+				}
+				log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, cum/transaction.Buyquantity)
+			}
+
+		}
 		return nil
 	case "new", "live":
 		return nil
