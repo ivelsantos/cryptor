@@ -3,6 +3,8 @@ package operations
 import (
 	"fmt"
 	"log"
+	"math"
+	"strconv"
 	// "time"
 
 	"github.com/ivelsantos/cryptor/models"
@@ -21,14 +23,39 @@ func Buy(algo models.Algor, base_asset string, quote_asset string, price float64
 		}
 
 		account, err := models.GetAccountByName(algo.Owner)
-		brl := testnet.GetAccountQuote(account.ApiKey_test, account.SecretKey_test)
+
+		asset, err := testnet.GetAccountQuote(account.ApiKey_test, account.SecretKey_test, quote_asset)
+		if err != nil {
+			return err
+		}
+		asset_float, err := strconv.ParseFloat(asset, 64)
+		if err != nil {
+			return err
+		}
+		quoteOrder := roundFloat(asset_float/5, 2)
+		quoteOrderStr := strconv.FormatFloat(quoteOrder, 'f', -1, 64)
+
+		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, base_asset+quote_asset, quoteOrderStr)
+		if err != nil {
+			return err
+		}
 
 		tb := models.TestingBuy{Botid: algo.Id, Baseasset: base_asset, Quoteasset: quote_asset}
-		// tb.Orderid = ...
-		// tb.Orderstatus = ...
-		// tb.Buyprice = ...
-		// tb.Buyquantity = ...
-		// tb.Buytime = ...
+		tb.Orderid = int(order.OrderID)
+		tb.Orderstatus = string(order.Status)
+
+		cum, err := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
+		if err != nil {
+			return err
+		}
+		tb.Buyvalue = cum
+
+		quant, err := strconv.ParseFloat(order.ExecutedQuantity, 64)
+		if err != nil {
+			return err
+		}
+		tb.Buyquantity = quant
+		tb.Buytime = int(order.TransactTime)
 
 		err = models.InsertTestingBuy(tb)
 		if err != nil {
@@ -47,26 +74,26 @@ func Buy(algo models.Algor, base_asset string, quote_asset string, price float64
 func Sell(algo models.Algor, price float64) error {
 	switch algo.State {
 	case "testing":
-		transactions, err := models.GetTesting(algo.Id)
-		if err != nil {
-			return err
-		}
+		// transactions, err := models.GetTesting(algo.Id)
+		// if err != nil {
+		// 	return err
+		// }
 
-		for _, transaction := range transactions {
-			// current := int(time.Now().Unix())
+		// for _, transaction := range transactions {
+		// 	// current := int(time.Now().Unix())
 
-			ts := models.TestingSell{Entryid: transaction.Id}
-			// ts.Orderstatus = ...
-			// ts.Sellprice = ...
-			// ts.Sellquantity = ...
-			// ts.Selltime = ...
+		// 	ts := models.TestingSell{Entryid: transaction.Id}
+		// 	// ts.Orderstatus = ...
+		// 	// ts.Sellprice = ...
+		// 	// ts.Sellquantity = ...
+		// 	// ts.Selltime = ...
 
-			err = models.InsertTestingSell(ts)
-			if err != nil {
-				return err
-			}
-			log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
-		}
+		// 	err = models.InsertTestingSell(ts)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
+		// }
 
 		return nil
 	case "new", "live":
@@ -79,29 +106,29 @@ func Sell(algo models.Algor, price float64) error {
 func StopLoss(algo models.Algor, stop float64, price float64) error {
 	switch algo.State {
 	case "testing":
-		transactions, err := models.GetTesting(algo.Id)
-		if err != nil {
-			return err
-		}
+		// transactions, err := models.GetTesting(algo.Id)
+		// if err != nil {
+		// 	return err
+		// }
 
-		for _, transaction := range transactions {
-			sellPrice := transaction.Buyprice - (stop * transaction.Buyprice)
-			if price <= sellPrice {
-				// current := int(time.Now().Unix())
+		// for _, transaction := range transactions {
+		// 	sellPrice := transaction.Buyvalue - (stop * transaction.Buyvalue)
+		// 	if price <= sellPrice {
+		// 		// current := int(time.Now().Unix())
 
-				ts := models.TestingSell{Entryid: transaction.Id}
-				// ts.Orderstatus = ...
-				// ts.Sellprice = ...
-				// ts.Sellquantity = ...
-				// ts.Selltime = ...
-				err = models.InsertTestingSell(ts)
-				if err != nil {
-					return err
-				}
-				log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
-			}
+		// 		ts := models.TestingSell{Entryid: transaction.Id}
+		// 		// ts.Orderstatus = ...
+		// 		// ts.Sellprice = ...
+		// 		// ts.Sellquantity = ...
+		// 		// ts.Selltime = ...
+		// 		err = models.InsertTestingSell(ts)
+		// 		if err != nil {
+		// 			return err
+		// 		}
+		// 		log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
+		// 	}
 
-		}
+		// }
 
 		return nil
 	case "new", "live":
@@ -114,29 +141,29 @@ func StopLoss(algo models.Algor, stop float64, price float64) error {
 func TakeProfit(algo models.Algor, take float64, price float64) error {
 	switch algo.State {
 	case "testing":
-		transactions, err := models.GetTesting(algo.Id)
-		if err != nil {
-			return err
-		}
+		// transactions, err := models.GetTesting(algo.Id)
+		// if err != nil {
+		// 	return err
+		// }
 
-		for _, transaction := range transactions {
-			sellPrice := transaction.Buyprice + (take * transaction.Buyprice)
-			if price >= sellPrice {
-				// current := int(time.Now().Unix())
+		// for _, transaction := range transactions {
+		// 	sellPrice := transaction.Buyvalue + (take * transaction.Buyvalue)
+		// 	if price >= sellPrice {
+		// 		// current := int(time.Now().Unix())
 
-				ts := models.TestingSell{Entryid: transaction.Id}
-				// ts.Orderstatus = ...
-				// ts.Sellprice = ...
-				// ts.Sellquantity = ...
-				// ts.Selltime = ...
+		// 		ts := models.TestingSell{Entryid: transaction.Id}
+		// 		// ts.Orderstatus = ...
+		// 		// ts.Sellprice = ...
+		// 		// ts.Sellquantity = ...
+		// 		// ts.Selltime = ...
 
-				err = models.InsertTestingSell(ts)
-				if err != nil {
-					return err
-				}
-				log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
-			}
-		}
+		// 		err = models.InsertTestingSell(ts)
+		// 		if err != nil {
+		// 			return err
+		// 		}
+		// 		log.Printf("TESTING: Sell %s at price %v\n", transaction.Ticket, price)
+		// 	}
+		// }
 
 		return nil
 	case "new", "live":
@@ -144,4 +171,9 @@ func TakeProfit(algo models.Algor, take float64, price float64) error {
 	default:
 		return fmt.Errorf("Unknown mode\n")
 	}
+}
+
+func roundFloat(val float64, precision uint) float64 {
+	ratio := math.Pow(10, float64(precision))
+	return math.Round(val*ratio) / ratio
 }

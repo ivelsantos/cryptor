@@ -55,6 +55,15 @@ func TestBuy(t *testing.T) {
 
 	log.Printf("\nInitial account balance: %v\nQuantity: %v\nPrice: %v\nCummulative: %v\n\n", asset_float, order.ExecutedQuantity, price, Cummulative)
 
+	sellorder, err := Sell(account.ApiKey_test, account.SecretKey_test, "BTC"+coin, order.ExecutedQuantity)
+	if err != nil {
+		log.Println("ERROR ON SELL")
+		t.Error(err)
+		return
+	}
+
+	log.Printf("\nSell cummulative: %v\nSell quantity: %v\n\n", sellorder.CummulativeQuoteQuantity, order.ExecutedQuantity)
+
 }
 
 func TestGetBalance(t *testing.T) {

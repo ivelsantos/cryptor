@@ -80,11 +80,10 @@ func createTestingTable(db *sql.DB) error {
 		orderid INTEGER NOT NULL,
 		ticket TEXT NOT NULL,
 		orderstatus TEXT NOT NULL,
-		buyprice REAL NOT NULL,
+		buyvalue REAL NOT NULL,
 		buyquantity REAL NOT NULL,
 		buytime INTEGER NOT NULL,
-		sellprice REAL,
-		sellquantity REAL,
+		sellvalue REAL,
 		selltime INTEGER
 	)`
 

@@ -6,17 +6,16 @@ import (
 )
 
 type AlgoTesting struct {
-	Id           int
-	Botid        int
-	Orderid      int
-	Ticket       string
-	Orderstatus  string
-	Buyprice     float64
-	Buyquantity  float64
-	Buytime      int
-	Sellprice    float64
-	Sellquantity float64
-	Selltime     int
+	Id          int
+	Botid       int
+	Orderid     int
+	Ticket      string
+	Orderstatus string
+	Buyvalue    float64
+	Buyquantity float64
+	Buytime     int
+	Sellvalue   float64
+	Selltime    int
 }
 
 type TestingBuy struct {
@@ -25,23 +24,22 @@ type TestingBuy struct {
 	Baseasset   string
 	Quoteasset  string
 	Orderstatus string
-	Buyprice    float64
+	Buyvalue    float64
 	Buyquantity float64
 	Buytime     int
 }
 
 type TestingSell struct {
-	Entryid      int
-	Orderstatus  string
-	Sellprice    float64
-	Sellquantity float64
-	Selltime     int
+	Entryid     int
+	Orderstatus string
+	Sellvalue   float64
+	Selltime    int
 }
 
 // func InsertTestingBuy(botid int, orderid int, ticket string, orderstatus string, buyprice float64, buyquantity string, buytime int) error {
 func InsertTestingBuy(tb TestingBuy) error {
 	query := `
-		INSERT INTO testing (botid, orderid, ticket, orderstatus, buyprice, buyquantity, buytime)
+		INSERT INTO testing (botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 
@@ -51,7 +49,7 @@ func InsertTestingBuy(tb TestingBuy) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(tb.Botid, tb.Orderid, tb.Baseasset+tb.Quoteasset, tb.Orderstatus, tb.Buyprice, tb.Buyquantity, tb.Buytime)
+	_, err = stmt.Exec(tb.Botid, tb.Orderid, tb.Baseasset+tb.Quoteasset, tb.Orderstatus, tb.Buyvalue, tb.Buyquantity, tb.Buytime)
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
@@ -63,9 +61,8 @@ func InsertTestingBuy(tb TestingBuy) error {
 func InsertTestingSell(ts TestingSell) error {
 	query := `
 		UPDATE testing
-		SET sellprice = ?,
+		SET sellvalue = ?,
 			selltime = ?,
-			sellquantity = ?,
 			orderstatus = ?
 		WHERE id = ?
 	`
@@ -76,7 +73,7 @@ func InsertTestingSell(ts TestingSell) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(ts.Sellprice, ts.Selltime, ts.Sellquantity, ts.Orderstatus, ts.Entryid)
+	_, err = stmt.Exec(ts.Sellvalue, ts.Selltime, ts.Orderstatus, ts.Entryid)
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
@@ -86,8 +83,8 @@ func InsertTestingSell(ts TestingSell) error {
 
 func GetTesting(botid int) ([]AlgoTesting, error) {
 	query := `
-		SELECT id, botid, orderid, ticket, orderstatus, buyprice, buyquantity, buytime FROM testing
-		WHERE sellprice IS NULL
+		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM testing
+		WHERE sellvalue IS NULL
 		AND botid = ?
 	`
 	var algos []AlgoTesting
@@ -104,7 +101,7 @@ func GetTesting(botid int) ([]AlgoTesting, error) {
 		var algo AlgoTesting
 
 		// err := rows.Scan(&algo.Id, &algo.Botid, &algo.Ticket, &algo.Buyprice, &algo.Buytime, &algo.Sellprice, &algo.Selltime)
-		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Ticket, &algo.Buyprice, &algo.Buytime)
+		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Ticket, &algo.Buyvalue, &algo.Buytime)
 		if err != nil {
 			return nil, err
 		}

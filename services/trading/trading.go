@@ -10,7 +10,7 @@ import (
 
 func Trading() error {
 	for {
-
+		log.Println("PASSOU AQUI")
 		err := crypt.InitCrypt()
 		algos, err := models.GetAllAlgos()
 		if err != nil {

@@ -3,7 +3,7 @@ package front
 import (
 	"github.com/ivelsantos/cryptor/front/handlers"
 	"github.com/ivelsantos/cryptor/front/middle"
-	"github.com/ivelsantos/cryptor/models"
+	// "github.com/ivelsantos/cryptor/models"
 	"log"
 	"net/http"
 
@@ -24,11 +24,6 @@ func Front() {
 	handler := handlers.NewHandler(store)
 	middle := middleware.NewMiddle(store)
 	_ = middle
-
-	err := models.InitDB()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	m := http.NewServeMux()
 
