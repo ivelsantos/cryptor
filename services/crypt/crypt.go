@@ -19,7 +19,7 @@ var cp *Crypt
 func InitCrypt() error {
 	cp = &Crypt{}
 
-	ticket := "BTCBRL"
+	ticket := "BTCUSDT"
 
 	val, err := values.GetPrice(ticket)
 	if err != nil {

@@ -272,12 +272,8 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
 	algo := algoAny.(models.Algor)
-	price, ok := c.globalStore["Price"]
-	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve price")
-	}
 
-	err := operations.StopLoss(algo, res.(float64), price.(float64))
+	err := operations.StopLoss(algo, res.(float64))
 	if err != nil {
 		return nil, err
 	}
@@ -291,12 +287,8 @@ TakeProfit <- "Take_profit(" _ res:Number _ ")" {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
 	algo := algoAny.(models.Algor)
-	price, ok := c.globalStore["Price"]
-	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve price")
-	}
 
-	err := operations.TakeProfit(algo, res.(float64), price.(float64))
+	err := operations.TakeProfit(algo, res.(float64))
 	if err != nil {
 		return nil, err
 	}
