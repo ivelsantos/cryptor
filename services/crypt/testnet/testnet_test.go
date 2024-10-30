@@ -53,7 +53,7 @@ func TestBuy(t *testing.T) {
 	Cummulative, _ := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
 	price := Cummulative / quantity
 
-	log.Printf("\nInitial account balance: %v\nQuote Order: %v\nQuantity: %v\nPrice: %v\nCommission: %v\n\n", asset_float, quoteOrderStr, order.ExecutedQuantity, price, sumFills(order.Fills))
+	log.Printf("\nInitial account balance: %v\nQuantity: %v\nPrice: %v\nCummulative: %v\n\n", asset_float, order.ExecutedQuantity, price, Cummulative)
 
 }
 
