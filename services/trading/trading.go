@@ -10,7 +10,6 @@ import (
 
 func Trading() error {
 	for {
-		log.Println("PASSOU AQUI")
 		err := crypt.InitCrypt()
 		algos, err := models.GetAllAlgos()
 		if err != nil {
@@ -27,7 +26,7 @@ func Trading() error {
 			optAlgo := lang.GlobalStore("Algo", algo)
 			optPrice := lang.GlobalStore("Price", price)
 			optBase := lang.GlobalStore("Base", "BTC")
-			optQuote := lang.GlobalStore("Quote", "BRL")
+			optQuote := lang.GlobalStore("Quote", "USDT")
 
 			_, err := lang.Parse("", []byte(algo.Buycode), optPrice, optBase, optQuote, optAlgo)
 			if err != nil {

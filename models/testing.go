@@ -100,8 +100,7 @@ func GetTesting(botid int) ([]AlgoTesting, error) {
 	for rows.Next() {
 		var algo AlgoTesting
 
-		// err := rows.Scan(&algo.Id, &algo.Botid, &algo.Ticket, &algo.Buyprice, &algo.Buytime, &algo.Sellprice, &algo.Selltime)
-		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Ticket, &algo.Buyvalue, &algo.Buytime)
+		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Orderid, &algo.Ticket, &algo.Orderstatus, &algo.Buyvalue, &algo.Buyquantity, &algo.Buytime)
 		if err != nil {
 			return nil, err
 		}

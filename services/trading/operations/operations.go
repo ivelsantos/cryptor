@@ -5,13 +5,12 @@ import (
 	"log"
 	"math"
 	"strconv"
-	// "time"
 
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services/crypt/testnet"
 )
 
-func Buy(algo models.Algor, base_asset string, quote_asset string, price float64) error {
+func Buy(algo models.Algor, base_asset string, quote_asset string) error {
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTesting(algo.Id)
@@ -62,7 +61,7 @@ func Buy(algo models.Algor, base_asset string, quote_asset string, price float64
 			return err
 		}
 
-		log.Printf("TESTING: Buy %s at price %v\n", base_asset+quote_asset, price)
+		log.Printf("TESTING: Buy %s at price %v\n", base_asset+quote_asset, cum/quant)
 		return nil
 	case "new", "live":
 		return nil

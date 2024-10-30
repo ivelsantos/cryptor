@@ -3,7 +3,6 @@ package front
 import (
 	"github.com/ivelsantos/cryptor/front/handlers"
 	"github.com/ivelsantos/cryptor/front/middle"
-	// "github.com/ivelsantos/cryptor/models"
 	"log"
 	"net/http"
 
