@@ -17,6 +17,9 @@ func Trading() error {
 
 		for _, algo := range algos {
 			price, err := values.GetPrice(algo.BaseAsset + algo.QuoteAsset)
+			if err != nil {
+				return err
+			}
 
 			// Placing the values on the globalStore
 			optAlgo := lang.GlobalStore("Algo", algo)

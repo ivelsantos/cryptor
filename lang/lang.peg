@@ -161,11 +161,16 @@ Number <- [+-]?[0-9]+([.][0-9]*)? {
 }
 
 Values <- '@'[a-zA-Z]+[0-9a-zA-Z_]* {
-	//TODO
-	key := string(c.text)
-	val, ok := crypt.GetCryptValue(key)
+	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
-		return nil, fmt.Errorf("Value unknown: %s", key)
+		return nil, fmt.Errorf("Unable to retrieve algo")
+	}
+	algo := algoAny.(models.Algor)
+
+	key := string(c.text)
+	val, err := crypt.GetCryptValue(algo, key)
+	if err != nil {
+		return nil, err
 	}
 	return val, nil
 }
