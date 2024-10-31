@@ -104,6 +104,11 @@ func Sell(algo models.Algor, price float64) error {
 }
 
 func StopLoss(algo models.Algor, stop float64) error {
+	ticket := algo.BaseAsset + algo.QuoteAsset
+	price, err := values.GetPrice(ticket)
+	if err != nil {
+		return err
+	}
 
 	switch algo.State {
 	case "testing":
@@ -118,11 +123,6 @@ func StopLoss(algo models.Algor, stop float64) error {
 		}
 
 		for _, transaction := range transactions {
-			price, err := values.GetPrice(transaction.Ticket)
-			if err != nil {
-				return err
-			}
-
 			buyprice := transaction.Buyvalue / transaction.Buyquantity
 			sellPrice := buyprice - (stop * buyprice)
 
@@ -162,6 +162,12 @@ func StopLoss(algo models.Algor, stop float64) error {
 }
 
 func TakeProfit(algo models.Algor, take float64) error {
+	ticket := algo.BaseAsset + algo.QuoteAsset
+	price, err := values.GetPrice(ticket)
+	if err != nil {
+		return err
+	}
+
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTesting(algo.Id)
@@ -175,10 +181,6 @@ func TakeProfit(algo models.Algor, take float64) error {
 		}
 
 		for _, transaction := range transactions {
-			price, err := values.GetPrice(transaction.Ticket)
-			if err != nil {
-				return err
-			}
 			buyprice := transaction.Buyvalue / transaction.Buyquantity
 			sellPrice := buyprice + (take * buyprice)
 

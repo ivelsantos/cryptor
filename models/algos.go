@@ -6,18 +6,20 @@ import (
 )
 
 type Algor struct {
-	Id      int
-	Owner   string
-	Name    string
-	Created int
-	Buycode string
-	State   string
+	Id         int
+	Owner      string
+	Name       string
+	Created    int
+	Buycode    string
+	State      string
+	BaseAsset  string
+	QuoteAsset string
 }
 
 func InsertAlgo(algor Algor) error {
 	query := `
-		INSERT INTO algos (owner, name, created, buycode, state)
-		VALUES (?, ?, ?, ?, ?)
+		INSERT INTO algos (owner, name, created, buycode, state, base_asset, quote_asset)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 
 	stmt, err := db.Prepare(query)
@@ -26,7 +28,7 @@ func InsertAlgo(algor Algor) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(algor.Owner, algor.Name, algor.Created, algor.Buycode, algor.State)
+	_, err = stmt.Exec(algor.Owner, algor.Name, algor.Created, algor.Buycode, algor.State, algor.BaseAsset, algor.QuoteAsset)
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
@@ -49,7 +51,7 @@ func GetAlgos(owner string) ([]Algor, error) {
 	for rows.Next() {
 		var algo Algor
 
-		err := rows.Scan(&algo.Id, &algo.Owner, &algo.Name, &algo.Created, &algo.Buycode, &algo.State)
+		err := rows.Scan(&algo.Id, &algo.Owner, &algo.Name, &algo.Created, &algo.Buycode, &algo.State, &algo.BaseAsset, &algo.QuoteAsset)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +81,7 @@ func GetAllAlgos() ([]Algor, error) {
 	for rows.Next() {
 		var algo Algor
 
-		err := rows.Scan(&algo.Id, &algo.Owner, &algo.Name, &algo.Created, &algo.Buycode, &algo.State)
+		err := rows.Scan(&algo.Id, &algo.Owner, &algo.Name, &algo.Created, &algo.Buycode, &algo.State, &algo.BaseAsset, &algo.QuoteAsset)
 		if err != nil {
 			return nil, err
 		}

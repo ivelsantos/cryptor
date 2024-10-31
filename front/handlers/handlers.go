@@ -63,8 +63,10 @@ func (h *Handler) EditorSave(w http.ResponseWriter, r *http.Request) {
 	created := int(time.Now().Unix())
 	buycode := r.FormValue("buycode")
 	state := "new"
+	baseAsset := r.FormValue("baseAsset")
+	quoteAsset := r.FormValue("quoteAsset")
 
-	algo := models.Algor{Owner: owner, Name: name, Created: created, Buycode: buycode, State: state}
+	algo := models.Algor{Owner: owner, Name: name, Created: created, Buycode: buycode, State: state, BaseAsset: baseAsset, QuoteAsset: quoteAsset}
 
 	err := models.InsertAlgo(algo)
 	if err != nil {

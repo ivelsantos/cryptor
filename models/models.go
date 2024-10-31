@@ -61,7 +61,9 @@ func createAlgosTable(db *sql.DB) error {
 		name TEXT NOT NULL,
 		created INTEGER NOT NULL,
 		buycode TEXT NOT NULL,
-		state TEXT NOT NULL
+		state TEXT NOT NULL,
+		base_asset TEXT NOT NULL,
+		quote_asset TEXT NOT NULL
 	)`
 
 	_, err := db.Exec(query)
