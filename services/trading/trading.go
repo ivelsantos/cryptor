@@ -24,10 +24,8 @@ func Trading() error {
 			// Placing the values on the globalStore
 			optAlgo := lang.GlobalStore("Algo", algo)
 			optPrice := lang.GlobalStore("Price", price)
-			optBase := lang.GlobalStore("Base", "BTC")
-			optQuote := lang.GlobalStore("Quote", "USDT")
 
-			_, err = lang.Parse("", []byte(algo.Buycode), optPrice, optBase, optQuote, optAlgo)
+			_, err = lang.Parse("", []byte(algo.Buycode), optPrice, optAlgo)
 			if err != nil {
 				log.Printf("%v: Parsing error: %v\n", algo.Name, err)
 				continue

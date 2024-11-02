@@ -69,6 +69,11 @@ func (h *Handler) EditorSave(w http.ResponseWriter, r *http.Request) {
 	algo := models.Algor{Owner: owner, Name: name, Created: created, Buycode: buycode, State: state, BaseAsset: baseAsset, QuoteAsset: quoteAsset}
 
 	err := models.InsertAlgo(algo)
+	count := 0
+	for err != nil && count <= 100 {
+		err = models.InsertAlgo(algo)
+		count += 1
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

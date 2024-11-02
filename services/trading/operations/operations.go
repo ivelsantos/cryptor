@@ -11,7 +11,7 @@ import (
 	"github.com/ivelsantos/cryptor/services/crypt/values"
 )
 
-func Buy(algo models.Algor, base_asset string, quote_asset string) error {
+func Buy(algo models.Algor) error {
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTesting(algo.Id)
@@ -24,7 +24,7 @@ func Buy(algo models.Algor, base_asset string, quote_asset string) error {
 
 		account, err := models.GetAccountByName(algo.Owner)
 
-		asset, err := testnet.GetAccountQuote(account.ApiKey_test, account.SecretKey_test, quote_asset)
+		asset, err := testnet.GetAccountQuote(account.ApiKey_test, account.SecretKey_test, algo.QuoteAsset)
 		if err != nil {
 			return err
 		}
@@ -32,15 +32,15 @@ func Buy(algo models.Algor, base_asset string, quote_asset string) error {
 		if err != nil {
 			return err
 		}
-		quoteOrder := roundFloat(asset_float/5, 2)
+		quoteOrder := roundFloat(asset_float/3, 2)
 		quoteOrderStr := strconv.FormatFloat(quoteOrder, 'f', -1, 64)
 
-		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, base_asset+quote_asset, quoteOrderStr)
+		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset, quoteOrderStr)
 		if err != nil {
 			return err
 		}
 
-		tb := models.TestingBuy{Botid: algo.Id, Baseasset: base_asset, Quoteasset: quote_asset}
+		tb := models.TestingBuy{Botid: algo.Id, Baseasset: algo.BaseAsset, Quoteasset: algo.QuoteAsset}
 		tb.Orderid = int(order.OrderID)
 		tb.Orderstatus = string(order.Status)
 
@@ -62,7 +62,7 @@ func Buy(algo models.Algor, base_asset string, quote_asset string) error {
 			return err
 		}
 
-		log.Printf("TESTING: Buy %s at price %v\n", base_asset+quote_asset, cum/quant)
+		log.Printf("TESTING %v: Buy %s at price %v\n", algo.Name, algo.BaseAsset+algo.QuoteAsset, cum/quant)
 		return nil
 	case "new", "live":
 		return nil
@@ -148,7 +148,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 				if err != nil {
 					return err
 				}
-				log.Printf("TESTING: StopLoss %s at price %v\n", transaction.Ticket, cum/transaction.Buyquantity)
+				log.Printf("TESTING %v: StopLoss %s at price %v\n", algo.Name, transaction.Ticket, cum/transaction.Buyquantity)
 			}
 
 		}
@@ -185,7 +185,6 @@ func TakeProfit(algo models.Algor, take float64) error {
 			sellPrice := buyprice + (take * buyprice)
 
 			if price > sellPrice {
-				log.Printf("\nTAKEPROFIT: price: %v\tsellPrice: %v\n\n", price, sellPrice)
 
 				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
 				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
@@ -207,7 +206,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 				if err != nil {
 					return err
 				}
-				log.Printf("TESTING: TakeProfit %s at price %v\n", transaction.Ticket, cum/transaction.Buyquantity)
+				log.Printf("TESTING %v: TakeProfit %s at price %v\n", algo.Name, transaction.Ticket, cum/transaction.Buyquantity)
 			}
 
 		}

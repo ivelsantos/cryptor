@@ -222,21 +222,13 @@ Action <- Buy / Sell / StopLoss / TakeProfit {
 
 Buy <- "Buy()" {
 
-	base, ok := c.globalStore["Base"]
-	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve ticket")
-	}
-	quote, ok := c.globalStore["Quote"]
-	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve ticket")
-	}
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
 	algo := algoAny.(models.Algor)
 
-	err := operations.Buy(algo, base.(string), quote.(string))
+	err := operations.Buy(algo)
 	if err != nil {
 		return nil, err
 	}
