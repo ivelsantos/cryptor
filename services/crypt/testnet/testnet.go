@@ -65,3 +65,26 @@ func getCoinBalance(coin string, balances []binance.Balance) (string, error) {
 
 	return "0", fmt.Errorf("Coin not found")
 }
+
+func GetNotional(apikey, secretkey, ticker string) (float64, error) {
+	binance.UseTestnet = true
+	client := binance.NewClient(apikey, secretkey)
+
+	res, err := client.NewExchangeInfoService().Do(context.Background())
+	if err != nil {
+		return 0, err
+	}
+
+	var symbol binance.Symbol
+
+	for _, s := range res.Symbols {
+		if s.Symbol == ticker {
+			symbol = s
+			break
+		}
+	}
+
+	_ = symbol.NotionalFilter().MinNotional
+
+	return 0, nil
+}
