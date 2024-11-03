@@ -47,8 +47,8 @@ templ algoTable(set HomeSettings) {
 					<tr>
 						<td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{ algo.Name }</td>
 						<td class="whitespace-nowrap px-4 py-2 text-gray-900">
-							<form id="myForm" action={ templ.URL("/editor/update/state/" + strconv.Itoa(algo.Id)) } method="post" onchange="document.getElementById('myForm').submit()">
-								<select id="options" name="option">
+							<form id={ "myForm" + strconv.Itoa(algo.Id) } action={ templ.URL("/editor/update/state/" + strconv.Itoa(algo.Id)) } method="post">
+								<select id="options" name="option" onchange="this.form.submit()">
 									<option
 										value="waiting"
 										if algo.State == "waiting" {

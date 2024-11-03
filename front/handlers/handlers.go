@@ -65,7 +65,6 @@ func (h *Handler) AlgoStateUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, ok.Error(), http.StatusInternalServerError)
 		return
 	}
-
 	state := r.FormValue("option")
 
 	err := models.UpdateAlgoState(state, id, owner)
