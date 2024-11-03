@@ -56,13 +56,35 @@ func (h *Handler) AlgoDelete(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) AlgoStateUpdate(w http.ResponseWriter, r *http.Request) {
+	session, _ := h.store.Get(r, "auth")
+	owner := session.Values["user"].(string)
+	id, ok := strconv.Atoi(r.PathValue("id"))
+	if ok != nil {
+		log.Print(ok)
+		http.Error(w, ok.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	state := r.FormValue("option")
+
+	err := models.UpdateAlgoState(state, id, owner)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
 func (h *Handler) EditorSave(w http.ResponseWriter, r *http.Request) {
 	session, _ := h.store.Get(r, "auth")
 	owner, _ := session.Values["user"].(string)
 	name := r.FormValue("namecode")
 	created := int(time.Now().Unix())
 	buycode := r.FormValue("buycode")
-	state := "new"
+	state := "waiting"
 	baseAsset := r.FormValue("baseAsset")
 	quoteAsset := r.FormValue("quoteAsset")
 

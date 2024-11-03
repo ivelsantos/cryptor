@@ -118,11 +118,11 @@ func DeleteAlgo(id int, owner string) error {
 	return nil
 }
 
-func UpdateAlgoState(state string, id int) error {
+func UpdateAlgoState(state string, id int, owner string) error {
 	query := `
 		UPDATE algos
 		SET state = ?
-		WHERE id = ?
+		WHERE id = ? AND owner = ?
 	`
 
 	stmt, err := db.Prepare(query)
@@ -131,7 +131,7 @@ func UpdateAlgoState(state string, id int) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(state, id)
+	_, err = stmt.Exec(state, id, owner)
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}

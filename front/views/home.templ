@@ -46,7 +46,30 @@ templ algoTable(set HomeSettings) {
 				for _, algo := range set.Algos {
 					<tr>
 						<td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{ algo.Name }</td>
-						<td class="whitespace-nowrap px-4 py-2 text-gray-900">{ algo.State }</td>
+						<td class="whitespace-nowrap px-4 py-2 text-gray-900">
+							<form id="myForm" action={ templ.URL("/editor/update/state/" + strconv.Itoa(algo.Id)) } method="post" onchange="document.getElementById('myForm').submit()">
+								<select id="options" name="option">
+									<option
+										value="waiting"
+										if algo.State == "waiting" {
+											selected
+										}
+									>Waiting</option>
+									<option
+										value="testing"
+										if algo.State == "testing" {
+											selected
+										}
+									>Testing</option>
+									<option
+										value="live"
+										if algo.State == "live" {
+											selected
+										}
+									>Live</option>
+								</select>
+							</form>
+						</td>
 						<td class="whitespace-nowrap px-4 py-2">
 							<button hx-delete={ "/editor/delete/" + strconv.Itoa(algo.Id) } class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75">Delete</button>
 						</td>

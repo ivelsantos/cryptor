@@ -34,6 +34,7 @@ func Front() {
 	handlerEditor := http.HandlerFunc(handler.AlgoEditor)
 	handlerEditorSave := http.HandlerFunc(handler.EditorSave)
 	handlerAlgoDelete := http.HandlerFunc(handler.AlgoDelete)
+	handlerAlgoStateUpdate := http.HandlerFunc(handler.AlgoStateUpdate)
 
 	// Home related
 	m.Handle("GET /", middle.CheckAuth(handlerHome))
@@ -50,6 +51,7 @@ func Front() {
 	m.Handle("GET /editor", middle.CheckAuth(handlerEditor))
 	m.Handle("POST /editor/save", middle.CheckAuth(handlerEditorSave))
 	m.Handle("DELETE /editor/delete/{id}", middle.CheckAuth(handlerAlgoDelete))
+	m.Handle("POST /editor/update/state/{id}", middle.CheckAuth(handlerAlgoStateUpdate))
 
 	log.Print("Starting server at port :1234")
 	log.Fatal(http.ListenAndServe(":1234", m))

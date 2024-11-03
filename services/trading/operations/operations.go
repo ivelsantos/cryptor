@@ -64,7 +64,7 @@ func Buy(algo models.Algor) error {
 
 		log.Printf("TESTING %v: Buy %s at price %v\n", algo.Name, algo.BaseAsset+algo.QuoteAsset, cum/quant)
 		return nil
-	case "new", "live":
+	case "waiting", "live":
 		return nil
 	default:
 		return fmt.Errorf("Unknown mode\n")
@@ -96,7 +96,7 @@ func Sell(algo models.Algor, price float64) error {
 		// }
 
 		return nil
-	case "new", "live":
+	case "waiting", "live":
 		return nil
 	default:
 		return fmt.Errorf("Unknown mode\n")
@@ -154,7 +154,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 		}
 
 		return nil
-	case "new", "live":
+	case "waiting", "live":
 		return nil
 	default:
 		return fmt.Errorf("Unknown mode\n")
@@ -211,7 +211,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 
 		}
 		return nil
-	case "new", "live":
+	case "waiting", "live":
 		return nil
 	default:
 		return fmt.Errorf("Unknown mode\n")
