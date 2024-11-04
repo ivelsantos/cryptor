@@ -3,6 +3,7 @@ package testnet
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/adshao/go-binance/v2"
 )
@@ -10,7 +11,6 @@ import (
 func Buy(apikey, secretkey, symbol, orderquote string) (*binance.CreateOrderResponse, error) {
 	binance.UseTestnet = true
 	client := binance.NewClient(apikey, secretkey)
-	_ = client
 
 	order, err := client.NewCreateOrderService().Symbol(symbol).Side(binance.SideTypeBuy).Type(binance.OrderTypeMarket).QuoteOrderQty(orderquote).Do(context.Background())
 	if err != nil {
@@ -23,9 +23,20 @@ func Buy(apikey, secretkey, symbol, orderquote string) (*binance.CreateOrderResp
 func Sell(apikey, secretkey, symbol, quantity string) (*binance.CreateOrderResponse, error) {
 	binance.UseTestnet = true
 	client := binance.NewClient(apikey, secretkey)
-	_ = client
 
 	order, err := client.NewCreateOrderService().Symbol(symbol).Side(binance.SideTypeSell).Type(binance.OrderTypeMarket).Quantity(quantity).Do(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return order, nil
+}
+
+func SellQuote(apikey, secretkey, symbol, quoteOrder string) (*binance.CreateOrderResponse, error) {
+	binance.UseTestnet = true
+	client := binance.NewClient(apikey, secretkey)
+
+	order, err := client.NewCreateOrderService().Symbol(symbol).Side(binance.SideTypeSell).Type(binance.OrderTypeMarket).QuoteOrderQty(quoteOrder).Do(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -47,8 +58,6 @@ func GetAccountQuote(apikey, secretkey, quote string) (string, error) {
 		return "", err
 	}
 
-	// log.Println(brl)
-
 	return brl, nil
 }
 
@@ -66,7 +75,7 @@ func getCoinBalance(coin string, balances []binance.Balance) (string, error) {
 	return "0", fmt.Errorf("Coin not found")
 }
 
-func GetNotional(apikey, secretkey, ticker string) (float64, error) {
+func GetMinNotional(apikey, secretkey, ticker string) (float64, error) {
 	binance.UseTestnet = true
 	client := binance.NewClient(apikey, secretkey)
 
@@ -84,7 +93,10 @@ func GetNotional(apikey, secretkey, ticker string) (float64, error) {
 		}
 	}
 
-	_ = symbol.NotionalFilter().MinNotional
+	n, err := strconv.ParseFloat(symbol.NotionalFilter().MinNotional, 64)
+	if err != nil {
+		return n, err
+	}
 
-	return 0, nil
+	return n, nil
 }

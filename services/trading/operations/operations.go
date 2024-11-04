@@ -32,10 +32,24 @@ func Buy(algo models.Algor) error {
 		if err != nil {
 			return err
 		}
-		quoteOrder := roundFloat(asset_float/3, 2)
-		quoteOrderStr := strconv.FormatFloat(quoteOrder, 'f', -1, 64)
 
-		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset, quoteOrderStr)
+		minNotional, err := testnet.GetMinNotional(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset)
+		if err != nil {
+			return err
+		}
+		if minNotional > asset_float {
+			quoteOrder := minNotional * 2
+			quoteOrderStr := strconv.FormatFloat(quoteOrder, 'f', -1, 64)
+
+			_, err := testnet.SellQuote(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset, quoteOrderStr)
+			if err != nil {
+				return err
+			}
+		}
+
+		minNotionalStr := strconv.FormatFloat(minNotional, 'f', -1, 64)
+
+		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset, minNotionalStr)
 		if err != nil {
 			return err
 		}
