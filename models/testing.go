@@ -114,3 +114,22 @@ func GetTesting(botid int) ([]AlgoTesting, error) {
 
 	return algos, nil
 }
+
+func FixatingTesting(botid int) error {
+	query := `
+
+	`
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return fmt.Errorf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec()
+	if err != nil {
+		return fmt.Errorf("Failed to execute statement: %v", err)
+	}
+
+	return nil
+}

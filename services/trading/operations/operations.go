@@ -37,7 +37,10 @@ func Buy(algo models.Algor) error {
 		if err != nil {
 			return err
 		}
-		if minNotional > asset_float {
+
+		minOrder := minNotional * 4
+
+		if minOrder > asset_float {
 			quoteOrder := minNotional * 2
 			quoteOrderStr := strconv.FormatFloat(quoteOrder, 'f', -1, 64)
 
@@ -47,9 +50,9 @@ func Buy(algo models.Algor) error {
 			}
 		}
 
-		minNotionalStr := strconv.FormatFloat(minNotional, 'f', -1, 64)
+		minOrderStr := strconv.FormatFloat(minOrder, 'f', -1, 64)
 
-		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset, minNotionalStr)
+		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset, minOrderStr)
 		if err != nil {
 			return err
 		}
@@ -145,7 +148,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
 				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
 				if err != nil {
-					return nil
+					return err
 				}
 
 				ts := models.TestingSell{Entryid: transaction.Id}
@@ -203,7 +206,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
 				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
 				if err != nil {
-					return nil
+					return err
 				}
 
 				ts := models.TestingSell{Entryid: transaction.Id}

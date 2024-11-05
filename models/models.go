@@ -96,3 +96,24 @@ func createTestingTable(db *sql.DB) error {
 
 	return nil
 }
+
+func createTestingFixedTable(db *sql.DB) error {
+	query := `
+	CREATE TABLE IF NOT EXISTS testing_fixed (
+		id INTEGER PRIMARY KEY,
+		botid INTEGER NOT NULL,
+		return REAL NOT NULL,
+		selltime INTEGER NOT NULL,
+		buytimelength INTEGER NOT NULL,
+		selltimelength INTEGER NOT NULL,
+		tradetimelength INTEGER NOT NULL
+		
+	)`
+
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("Failed to create table: %v", err)
+	}
+
+	return nil
+}
