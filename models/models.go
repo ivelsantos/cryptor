@@ -32,6 +32,11 @@ func InitDB(filename string) error {
 		return err
 	}
 
+	err = createTestingFixedTable(db)
+	if err != nil {
+		return err
+	}
+
 	return db.Ping()
 }
 

@@ -36,7 +36,6 @@ type TestingSell struct {
 	Selltime    int
 }
 
-// func InsertTestingBuy(botid int, orderid int, ticket string, orderstatus string, buyprice float64, buyquantity string, buytime int) error {
 func InsertTestingBuy(tb TestingBuy) error {
 	query := `
 		INSERT INTO testing (botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime)

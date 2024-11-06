@@ -144,6 +144,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 			sellPrice := buyprice - (stop * buyprice)
 
 			if price <= sellPrice {
+				log.Println("STOP LOSS")
 
 				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
 				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
@@ -202,6 +203,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 			sellPrice := buyprice + (take * buyprice)
 
 			if price > sellPrice {
+				log.Printf("\nTAKE PROFIT: price %v AND sellPrice %v\n", price, sellPrice)
 
 				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
 				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
