@@ -9,6 +9,11 @@ import (
 )
 
 func Trading() error {
+	err := resetTesting()
+	if err != nil {
+		return err
+	}
+
 	for {
 		algos, err := models.GetAllAlgos()
 		if err != nil {
@@ -32,4 +37,25 @@ func Trading() error {
 			}
 		}
 	}
+}
+
+func resetTesting() error {
+	botids, err := models.GetUniqueBotTesting()
+	if err != nil {
+		return err
+	}
+
+	for _, botid := range botids {
+		err = models.FixatingTesting(botid)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = models.EraseTesting()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

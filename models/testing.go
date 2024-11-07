@@ -56,7 +56,6 @@ func InsertTestingBuy(tb TestingBuy) error {
 	return nil
 }
 
-// func InsertTestingSell(entryid int, sellprice float64, sellquantity string, selltime int, orderstatus string) error {
 func InsertTestingSell(ts TestingSell) error {
 	query := `
 		UPDATE testing
@@ -114,9 +113,75 @@ func GetTesting(botid int) ([]AlgoTesting, error) {
 	return algos, nil
 }
 
+func GetUniqueBotTesting() ([]int, error) {
+	query := `
+	SELECT DISTINCT botid
+	FROM testing
+	`
+	var botids []int
+
+	rows, err := db.Query(query)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return nil, fmt.Errorf("Failed to retrieve testing algos: %v", err)
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var botid int
+
+		err := rows.Scan(&botid)
+		if err != nil {
+			return nil, err
+		}
+
+		botids = append(botids, botid)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return botids, nil
+}
+
 func FixatingTesting(botid int) error {
 	query := `
+	INSERT INTO testing_fixed (botid, return, selltime, buytimelength, selltimelength, tradetimelength)
+	SELECT *
+  FROM (
+           SELECT botid,
+                  (buyvalue - sellvalue) / buyvalue AS return,
+                  selltime,
+                  buytime - LAG(selltime) OVER (PARTITION BY botid ORDER BY id) AS buytimelength,
+                  selltime - buytime AS selltimelength,
+                  selltime - LAG(selltime) OVER (PARTITION BY botid ORDER BY id) AS tradetimelength
+             FROM testing
+            WHERE botid = ?
+            ORDER BY id
+       )
+ WHERE buytimelength IS NOT NULL
+ AND return IS NOT NULL
+	`
 
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return fmt.Errorf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(botid)
+	if err != nil {
+		return fmt.Errorf("Failed to execute statement: %v", err)
+	}
+
+	return nil
+}
+
+func EraseTesting() error {
+	query := `
+		delete from testing
 	`
 
 	stmt, err := db.Prepare(query)

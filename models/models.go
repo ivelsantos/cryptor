@@ -37,6 +37,11 @@ func InitDB(filename string) error {
 		return err
 	}
 
+	err = createAlgoStatsTable(db)
+	if err != nil {
+		return err
+	}
+
 	return db.Ping()
 }
 
@@ -114,6 +119,57 @@ func createTestingFixedTable(db *sql.DB) error {
 		tradetimelength INTEGER NOT NULL
 		
 	)`
+
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("Failed to create table: %v", err)
+	}
+
+	return nil
+}
+
+func createAlgoStatsTable(db *sql.DB) error {
+
+	query := `
+		CREATE VIEW IF NOT EXISTS algo_stats
+		AS
+		WITH bot_stats AS (
+    SELECT 
+        botid,
+        SUM(return) AS total_return,
+        AVG(return) AS average_return_per_trade,
+        (SUM(return) / (SUM(tradetimelength) / 2592000.0)) AS average_return_per_month,
+        SUM(CASE WHEN return > 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS success_rate,
+        MAX(return) AS max_return,
+        MIN(return) AS min_return,
+        SUM(tradetimelength) / COUNT(*) AS average_trade_time
+    FROM 
+        testing_fixed
+    GROUP BY 
+        botid
+),
+drawdown_calc AS (
+    SELECT 
+        botid,
+        MAX(max_return - min_return) AS max_drawdown
+    FROM 
+        bot_stats
+    GROUP BY 
+        botid
+)
+SELECT 
+    bs.botid,
+    bs.total_return,
+    bs.average_return_per_trade,
+    bs.average_return_per_month,
+    bs.success_rate,
+    dc.max_drawdown,
+    bs.average_trade_time
+FROM 
+    bot_stats AS bs
+JOIN 
+    drawdown_calc AS dc ON bs.botid = dc.botid;
+	`
 
 	_, err := db.Exec(query)
 	if err != nil {
