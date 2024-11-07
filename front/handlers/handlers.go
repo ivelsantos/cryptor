@@ -29,7 +29,12 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	sets := views.HomeSettings{User: name, Algos: algos}
+	stats, err := models.GetAllAlgoStats()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sets := views.HomeSettings{User: name, Algos: algos, Stats: stats}
 
 	views.Base(views.Home(sets)).Render(r.Context(), w)
 }

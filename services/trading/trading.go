@@ -40,7 +40,7 @@ func Trading() error {
 }
 
 func resetTesting() error {
-	botids, err := models.GetUniqueBotTesting()
+	botids, err := models.GetUniqueAlgoTesting()
 	if err != nil {
 		return err
 	}

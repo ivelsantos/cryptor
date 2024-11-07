@@ -36,6 +36,16 @@ type TestingSell struct {
 	Selltime    int
 }
 
+type AlgoStats struct {
+	Botid             int
+	TotalReturn       float64
+	AvgReturnPerTrade float64
+	AvgReturnPerMonth float64
+	SucessRate        float64
+	MaxDrawdown       float64
+	AvgTradeTime      int
+}
+
 func InsertTestingBuy(tb TestingBuy) error {
 	query := `
 		INSERT INTO testing (botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime)
@@ -113,7 +123,7 @@ func GetTesting(botid int) ([]AlgoTesting, error) {
 	return algos, nil
 }
 
-func GetUniqueBotTesting() ([]int, error) {
+func GetUniqueAlgoTesting() ([]int, error) {
 	query := `
 	SELECT DISTINCT botid
 	FROM testing
@@ -196,4 +206,46 @@ func EraseTesting() error {
 	}
 
 	return nil
+}
+
+func GetAllAlgoStats() ([]AlgoStats, error) {
+	query := `
+	SELECT * FROM algo_stats
+	`
+	var algos []AlgoStats
+
+	rows, err := db.Query(query)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return nil, fmt.Errorf("Failed to retrieve testing algos: %v", err)
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var algo AlgoStats
+
+		err := rows.Scan(&algo.Botid, &algo.TotalReturn, &algo.AvgReturnPerTrade, &algo.AvgReturnPerMonth, &algo.SucessRate, &algo.MaxDrawdown, &algo.AvgTradeTime)
+		if err != nil {
+			return nil, err
+		}
+
+		algos = append(algos, algo)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return algos, nil
+}
+
+func GetStatsById(stats []AlgoStats, botid int) AlgoStats {
+	for _, stat := range stats {
+		if stat.Botid == botid {
+			return stat
+		}
+	}
+
+	return AlgoStats{AvgReturnPerMonth: 0}
 }
