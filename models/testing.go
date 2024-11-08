@@ -156,39 +156,6 @@ func GetUniqueAlgoTesting() ([]int, error) {
 	return botids, nil
 }
 
-func FixatingTesting(botid int) error {
-	query := `
-	INSERT INTO testing_fixed (botid, return, selltime, buytimelength, selltimelength, tradetimelength)
-	SELECT *
-  FROM (
-           SELECT botid,
-                  (buyvalue - sellvalue) / buyvalue AS return,
-                  selltime,
-                  buytime - LAG(selltime) OVER (PARTITION BY botid ORDER BY id) AS buytimelength,
-                  selltime - buytime AS selltimelength,
-                  selltime - LAG(selltime) OVER (PARTITION BY botid ORDER BY id) AS tradetimelength
-             FROM testing
-            WHERE botid = ?
-            ORDER BY id
-       )
- WHERE buytimelength IS NOT NULL
- AND return IS NOT NULL
-	`
-
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		return fmt.Errorf("Failed to prepare statement: %v", err)
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(botid)
-	if err != nil {
-		return fmt.Errorf("Failed to execute statement: %v", err)
-	}
-
-	return nil
-}
-
 func EraseTesting() error {
 	query := `
 		DELETE FROM testing
