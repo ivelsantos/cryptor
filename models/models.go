@@ -32,11 +32,6 @@ func InitDB(filename string) error {
 		return err
 	}
 
-	err = createTestingFixedTable(db)
-	if err != nil {
-		return err
-	}
-
 	err = createAlgoStatsTable(db)
 	if err != nil {
 		return err
@@ -107,33 +102,28 @@ func createTestingTable(db *sql.DB) error {
 	return nil
 }
 
-func createTestingFixedTable(db *sql.DB) error {
-	query := `
-	CREATE TABLE IF NOT EXISTS testing_fixed (
-		id INTEGER PRIMARY KEY,
-		botid INTEGER NOT NULL,
-		return REAL NOT NULL,
-		selltime INTEGER NOT NULL,
-		buytimelength INTEGER NOT NULL,
-		selltimelength INTEGER NOT NULL,
-		tradetimelength INTEGER NOT NULL
-		
-	)`
-
-	_, err := db.Exec(query)
-	if err != nil {
-		return fmt.Errorf("Failed to create table: %v", err)
-	}
-
-	return nil
-}
-
 func createAlgoStatsTable(db *sql.DB) error {
 
 	query := `
 		CREATE VIEW IF NOT EXISTS algo_stats
 		AS
-		WITH bot_stats AS (
+		WITH temp_testing AS (
+		SELECT *
+		  FROM (
+		           SELECT botid,
+		                  (buyvalue - sellvalue) / buyvalue AS return,
+		                  selltime,
+		                  buytime - LAG(selltime) OVER (PARTITION BY botid ORDER BY id) AS buytimelength,
+		                  selltime - buytime AS selltimelength,
+		                  selltime - LAG(selltime) OVER (PARTITION BY botid ORDER BY id) AS tradetimelength
+		             FROM testing
+		            ORDER BY id
+		       )
+		WHERE buytimelength IS NOT NULL
+		AND return IS NOT NULL
+		),
+
+		bot_stats AS (
     SELECT 
         botid,
         SUM(return) AS total_return,
@@ -144,7 +134,7 @@ func createAlgoStatsTable(db *sql.DB) error {
         MIN(return) AS min_return,
         SUM(tradetimelength) / COUNT(*) AS average_trade_time
     FROM 
-        testing_fixed
+        temp_testing
     GROUP BY 
         botid
 ),

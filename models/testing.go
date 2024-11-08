@@ -191,7 +191,8 @@ func FixatingTesting(botid int) error {
 
 func EraseTesting() error {
 	query := `
-		delete from testing
+		DELETE FROM testing
+		WHERE sellvalue IS NULL
 	`
 
 	stmt, err := db.Prepare(query)
