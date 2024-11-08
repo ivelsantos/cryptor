@@ -41,7 +41,7 @@ func Buy(algo models.Algor) error {
 		minOrder := minNotional * 4
 
 		if minOrder > asset_float {
-			quoteOrder := minNotional * 2
+			quoteOrder := minOrder * 2
 			quoteOrderStr := strconv.FormatFloat(quoteOrder, 'f', -1, 64)
 
 			_, err := testnet.SellQuote(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset, quoteOrderStr)
@@ -169,7 +169,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 					return err
 				}
 				log.Printf("TESTING %v: StopLoss %s at price %v\n", algo.Name, transaction.Ticket, cum/transaction.Buyquantity)
-				log.Printf("\nSTOPLOSS: Margin %v\tBuyvalue %v\tSellvalue %v\n\n", (transaction.Buyvalue-ts.Sellvalue)/transaction.Buyvalue, transaction.Buyvalue, ts.Sellvalue)
+				log.Printf("\nSTOPLOSS: Margin %v\tBuyvalue %v\tSellvalue %v\n\n", (ts.Sellvalue-transaction.Buyvalue)/transaction.Buyvalue, transaction.Buyvalue, ts.Sellvalue)
 			}
 
 		}
@@ -232,7 +232,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 				}
 
 				log.Printf("TESTING %v: TakeProfit %s at price %v\n", algo.Name, transaction.Ticket, cum/transaction.Buyquantity)
-				log.Printf("\nTAKEPROFIT: Margin %v\tBuyvalue %v\tSellvalue %v\n\n", (transaction.Buyvalue-ts.Sellvalue)/transaction.Buyvalue, transaction.Buyvalue, ts.Sellvalue)
+				log.Printf("\nTAKEPROFIT: Margin %v\tBuyvalue %v\tSellvalue %v\n\n", (ts.Sellvalue-transaction.Buyvalue)/transaction.Buyvalue, transaction.Buyvalue, ts.Sellvalue)
 			}
 
 		}
