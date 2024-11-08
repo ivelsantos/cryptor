@@ -239,6 +239,7 @@ Buy <- "Buy()" {
 		return nil, nil
 	}
 	c.globalStore["result"] = []string{"buy"}
+	c.globalStore["sign"] = "OK"
 
 	return nil, nil
 }
@@ -265,11 +266,17 @@ Sell <- "Sell()" {
 		return nil, nil
 	}
 	c.globalStore["result"] = []string{"sell"}
+	c.globalStore["sign"] = "OK"
 
 	return nil, nil
 }
 
 StopLoss <- "Stop_loss(" _ res:Number _ ")" {
+	_, ok := c.globalStore["sign"]
+	if ok {
+		return nil, nil
+	}
+
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
@@ -281,10 +288,16 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" {
 		return nil, err
 	}
 
+	c.globalStore["sign"] = "OK"
 	return nil, nil
 }
 
 TakeProfit <- "Take_profit(" _ res:Number _ ")" {
+	_, ok := c.globalStore["sign"]
+	if ok {
+		return nil, nil
+	}
+
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
@@ -296,5 +309,6 @@ TakeProfit <- "Take_profit(" _ res:Number _ ")" {
 		return nil, err
 	}
 
+	c.globalStore["sign"] = "OK"
 	return nil, nil
 }
