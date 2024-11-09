@@ -88,7 +88,7 @@ func Buy(algo models.Algor) (bool, error) {
 	}
 }
 
-func Sell(algo models.Algor, price float64) error {
+func Sell(algo models.Algor) error {
 	switch algo.State {
 	case "testing":
 		// transactions, err := models.GetTesting(algo.Id)

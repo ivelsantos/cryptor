@@ -250,16 +250,12 @@ Buy <- "Buy()" {
 
 Sell <- "Sell()" {
 
-	price, ok := c.globalStore["Price"]
-	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve price")
-	}
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
 	algo := algoAny.(models.Algor)
-	err := operations.Sell(algo, price.(float64))
+	err := operations.Sell(algo)
 	if err != nil {
 		return nil, err
 	}

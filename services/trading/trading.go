@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ivelsantos/cryptor/lang"
 	"github.com/ivelsantos/cryptor/models"
-	"github.com/ivelsantos/cryptor/services/crypt/values"
 	"log"
 )
 
@@ -21,16 +20,11 @@ func Trading() error {
 		}
 
 		for _, algo := range algos {
-			price, err := values.GetPrice(algo.BaseAsset + algo.QuoteAsset)
-			if err != nil {
-				return err
-			}
 
 			// Placing the values on the globalStore
 			optAlgo := lang.GlobalStore("Algo", algo)
-			optPrice := lang.GlobalStore("Price", price)
 
-			_, err = lang.Parse("", []byte(algo.Buycode), optPrice, optAlgo)
+			_, err = lang.Parse("", []byte(algo.Buycode), optAlgo)
 			if err != nil {
 				log.Printf("%v: Parsing error: %v\n", algo.Name, err)
 				continue
