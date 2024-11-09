@@ -11,31 +11,31 @@ import (
 	"github.com/ivelsantos/cryptor/services/crypt/values"
 )
 
-func Buy(algo models.Algor) error {
+func Buy(algo models.Algor) (bool, error) {
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTesting(algo.Id)
 		if err != nil {
-			return err
+			return false, err
 		}
 		if len(transactions) != 0 {
-			return nil
+			return false, nil
 		}
 
 		account, err := models.GetAccountByName(algo.Owner)
 
 		asset, err := testnet.GetAccountQuote(account.ApiKey_test, account.SecretKey_test, algo.QuoteAsset)
 		if err != nil {
-			return err
+			return false, err
 		}
 		asset_float, err := strconv.ParseFloat(asset, 64)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		minNotional, err := testnet.GetMinNotional(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		minOrder := minNotional * 4
@@ -46,7 +46,7 @@ func Buy(algo models.Algor) error {
 
 			_, err := testnet.SellQuote(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset, quoteOrderStr)
 			if err != nil {
-				return err
+				return false, err
 			}
 		}
 
@@ -54,7 +54,7 @@ func Buy(algo models.Algor) error {
 
 		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, algo.BaseAsset+algo.QuoteAsset, minOrderStr)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		tb := models.TestingBuy{Botid: algo.Id, Baseasset: algo.BaseAsset, Quoteasset: algo.QuoteAsset}
@@ -63,28 +63,28 @@ func Buy(algo models.Algor) error {
 
 		cum, err := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
 		if err != nil {
-			return err
+			return false, err
 		}
 		tb.Buyvalue = cum
 
 		quant, err := strconv.ParseFloat(order.ExecutedQuantity, 64)
 		if err != nil {
-			return err
+			return false, err
 		}
 		tb.Buyquantity = quant
 		tb.Buytime = int(order.TransactTime)
 
 		err = models.InsertTestingBuy(tb)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		log.Printf("TESTING %v: Buy %s at price %v\n", algo.Name, algo.BaseAsset+algo.QuoteAsset, cum/quant)
-		return nil
+		return true, nil
 	case "waiting", "live":
-		return nil
+		return false, nil
 	default:
-		return fmt.Errorf("Unknown mode\n")
+		return false, fmt.Errorf("Unknown mode\n")
 	}
 }
 
@@ -231,8 +231,13 @@ func TakeProfit(algo models.Algor, take float64) error {
 					return err
 				}
 
+				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
+
 				log.Printf("TESTING %v: TakeProfit %s at price %v\n", algo.Name, transaction.Ticket, cum/transaction.Buyquantity)
-				log.Printf("\nTAKEPROFIT: Margin %v\tBuyvalue %v\tSellvalue %v\n\n", (ts.Sellvalue-transaction.Buyvalue)/transaction.Buyvalue, transaction.Buyvalue, ts.Sellvalue)
+				log.Printf("\nTAKEPROFIT: Margin %v\tBuyvalue %v\tSellvalue %v\n\n", res, transaction.Buyvalue, ts.Sellvalue)
+				if res < 0 {
+					log.Fatalln("TAKEPROFIT NEGATIVE")
+				}
 			}
 
 		}

@@ -228,9 +228,13 @@ Buy <- "Buy()" {
 	}
 	algo := algoAny.(models.Algor)
 
-	err := operations.Buy(algo)
+	ok, err := operations.Buy(algo)
 	if err != nil {
 		return nil, err
+	}
+
+	if ok {
+		c.globalStore["sign"] = "OK"
 	}
 
 	res, ok := c.globalStore["result"]
@@ -238,8 +242,8 @@ Buy <- "Buy()" {
 		c.globalStore["result"] = append(res.([]string), "buy")
 		return nil, nil
 	}
+
 	c.globalStore["result"] = []string{"buy"}
-	c.globalStore["sign"] = "OK"
 
 	return nil, nil
 }
