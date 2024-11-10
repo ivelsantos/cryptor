@@ -53,6 +53,6 @@ func Front() {
 	m.Handle("DELETE /editor/delete/{id}", middle.CheckAuth(handlerAlgoDelete))
 	m.Handle("POST /editor/update/state/{id}", middle.CheckAuth(handlerAlgoStateUpdate))
 
-	log.Print("Starting server at port :1234")
+	log.Printf("Starting server at port :1234\n\n")
 	log.Fatal(http.ListenAndServe(":1234", m))
 }

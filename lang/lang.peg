@@ -285,7 +285,7 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" {
 
 	err := operations.StopLoss(algo, res.(float64))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ERROR ON LANG: %v", err)
 	}
 
 	return nil, nil

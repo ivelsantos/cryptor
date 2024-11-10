@@ -74,6 +74,13 @@ func Buy(algo models.Algor) (bool, error) {
 		tb.Buytime = int(order.TransactTime)
 
 		err = models.InsertTestingBuy(tb)
+		count := 0
+
+		for err != nil && count < 100 {
+			err = models.InsertTestingBuy(tb)
+			count += 1
+		}
+
 		if err != nil {
 			return false, err
 		}
@@ -116,6 +123,12 @@ func Sell(algo models.Algor) error {
 			ts.Selltime = int(order.TransactTime)
 
 			err = models.InsertTestingSell(ts)
+			count := 0
+
+			for err != nil && count < 100 {
+				err = models.InsertTestingSell(ts)
+				count += 1
+			}
 			if err != nil {
 				return fmt.Errorf("models.InsertTestingSell: %v", err)
 			}
@@ -176,12 +189,17 @@ func StopLoss(algo models.Algor, stop float64) error {
 
 				cum, err := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
 				if err != nil {
-					return err
+					return fmt.Errorf("ParseFloat: %v", err)
 				}
 				ts.Sellvalue = cum
 				ts.Selltime = int(order.TransactTime)
 
 				err = models.InsertTestingSell(ts)
+				count := 0
+				for err != nil && count < 100 {
+					err = models.InsertTestingSell(ts)
+					count += 1
+				}
 				if err != nil {
 					return fmt.Errorf("models.InsertTestingSell: %v", err)
 				}
@@ -243,6 +261,11 @@ func TakeProfit(algo models.Algor, take float64) error {
 				ts.Selltime = int(order.TransactTime)
 
 				err = models.InsertTestingSell(ts)
+				count := 0
+				for err != nil && count < 100 {
+					err = models.InsertTestingSell(ts)
+					count += 1
+				}
 				if err != nil {
 					return err
 				}

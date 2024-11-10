@@ -73,6 +73,11 @@ func (h *Handler) AlgoStateUpdate(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("option")
 
 	err := models.UpdateAlgoState(state, id, owner)
+	count := 0
+	for err != nil && count < 100 {
+		err = models.UpdateAlgoState(state, id, owner)
+		count += 1
+	}
 	if err != nil {
 		log.Print(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

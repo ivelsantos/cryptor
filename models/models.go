@@ -17,6 +17,11 @@ func InitDB(filename string) error {
 		return err
 	}
 
+	err = walMode(db)
+	if err != nil {
+		return err
+	}
+
 	err = createAccountTable(db)
 	if err != nil {
 		return err
@@ -38,6 +43,15 @@ func InitDB(filename string) error {
 	}
 
 	return db.Ping()
+}
+
+func walMode(db *sql.DB) error {
+	_, err := db.Exec("PRAGMA journal_mode = wal")
+	if err != nil {
+		return fmt.Errorf("Failed to activate wal2 mode: %v", err)
+	}
+
+	return nil
 }
 
 func createAccountTable(db *sql.DB) error {

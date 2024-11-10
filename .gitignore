@@ -8,6 +8,10 @@ tmp/
 *.dylib
 *.db
 *.css
+*.wal
+*.shm
+*-wal
+*-shm
 
 *.test
 
