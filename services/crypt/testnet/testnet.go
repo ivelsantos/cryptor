@@ -100,3 +100,28 @@ func GetMinNotional(apikey, secretkey, ticker string) (float64, error) {
 
 	return n, nil
 }
+
+func GetDepth(apikey, secretkey, ticker string) (float64, float64, error) {
+	binance.UseTestnet = true
+	client := binance.NewClient(apikey, secretkey)
+
+	res, err := client.NewDepthService().Symbol(ticker).Limit(1).Do(context.Background())
+	if err != nil {
+		return 0, 0, err
+	}
+
+	bid := res.Bids[0].Price
+	ask := res.Asks[0].Price
+
+	bidPrice, err := strconv.ParseFloat(bid, 64)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	askPrice, err := strconv.ParseFloat(ask, 64)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return bidPrice, askPrice, nil
+}

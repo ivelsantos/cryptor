@@ -8,7 +8,7 @@ import (
 
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services/crypt/testnet"
-	"github.com/ivelsantos/cryptor/services/crypt/values"
+	// "github.com/ivelsantos/cryptor/services/crypt/values"
 )
 
 func Buy(algo models.Algor) (bool, error) {
@@ -121,37 +121,43 @@ func Sell(algo models.Algor) error {
 }
 
 func StopLoss(algo models.Algor, stop float64) error {
-	ticket := algo.BaseAsset + algo.QuoteAsset
-	price, err := values.GetPrice(ticket)
-	if err != nil {
-		return err
-	}
 
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTesting(algo.Id)
 		if err != nil {
-			return err
+			return fmt.Errorf("models.GetTesting: %v", err)
 		}
 
 		account, err := models.GetAccountByName(algo.Owner)
 		if err != nil {
-			return err
+			return fmt.Errorf("models.GetAccountByName: %v", err)
+		}
+
+		ticker := algo.BaseAsset + algo.QuoteAsset
+
+		bidPrice, askPrice, err := testnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
+		if err != nil {
+			return fmt.Errorf("testnet.GetDepthAsk: %v", err)
+		}
+
+		var price float64
+		if askPrice > bidPrice {
+			price = askPrice
+		} else {
+			price = bidPrice
 		}
 
 		for _, transaction := range transactions {
-			// if transaction.Orderstatus != "FILLED" {
-			// 	continue
-			// }
 			buyprice := transaction.Buyvalue / transaction.Buyquantity
 			sellPrice := buyprice - (stop * buyprice)
 
 			if price <= sellPrice {
-
+				log.Printf("TEST STOPLOSS: Price %v\tsellPrice %v\n", price, sellPrice)
 				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
 				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
 				if err != nil {
-					return err
+					return fmt.Errorf("testnet.Sell: %v", err)
 				}
 
 				ts := models.TestingSell{Entryid: transaction.Id}
@@ -166,10 +172,10 @@ func StopLoss(algo models.Algor, stop float64) error {
 
 				err = models.InsertTestingSell(ts)
 				if err != nil {
-					return err
+					return fmt.Errorf("models.InsertTestingSell: %v", err)
 				}
 				log.Printf("TESTING %v: StopLoss %s at price %v\n", algo.Name, transaction.Ticket, cum/transaction.Buyquantity)
-				log.Printf("\nSTOPLOSS: Margin %v\tBuyvalue %v\tSellvalue %v\n\n", (ts.Sellvalue-transaction.Buyvalue)/transaction.Buyvalue, transaction.Buyvalue, ts.Sellvalue)
+				log.Printf("STOPLOSS: Margin %v\tBuyvalue %v\tSellvalue %v\n", (ts.Sellvalue-transaction.Buyvalue)/transaction.Buyvalue, transaction.Buyvalue, ts.Sellvalue)
 			}
 
 		}
@@ -183,12 +189,6 @@ func StopLoss(algo models.Algor, stop float64) error {
 }
 
 func TakeProfit(algo models.Algor, take float64) error {
-	ticket := algo.BaseAsset + algo.QuoteAsset
-	price, err := values.GetPrice(ticket)
-	if err != nil {
-		return err
-	}
-
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTesting(algo.Id)
@@ -201,14 +201,19 @@ func TakeProfit(algo models.Algor, take float64) error {
 			return err
 		}
 
+		ticker := algo.BaseAsset + algo.QuoteAsset
+
+		bidPrice, _, err := testnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
+		if err != nil {
+			return err
+		}
+
 		for _, transaction := range transactions {
-			// if transaction.Orderstatus != "FILLED" {
-			// 	continue
-			// }
 			buyprice := transaction.Buyvalue / transaction.Buyquantity
 			sellPrice := buyprice + (take * buyprice)
 
-			if price > sellPrice {
+			if bidPrice > sellPrice {
+				log.Printf("TEST TAKEPROFIT: bidPrice %v\tsellPrice %v\t\n", bidPrice, sellPrice)
 
 				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
 				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
@@ -234,7 +239,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
 
 				log.Printf("TESTING %v: TakeProfit %s at price %v\n", algo.Name, transaction.Ticket, cum/transaction.Buyquantity)
-				log.Printf("\nTAKEPROFIT: Margin %v\tBuyvalue %v\tSellvalue %v\n\n", res, transaction.Buyvalue, ts.Sellvalue)
+				log.Printf("TAKEPROFIT: Margin %v\tBuyvalue %v\tSellvalue %v\n", res, transaction.Buyvalue, ts.Sellvalue)
 				if res < 0 {
 					log.Fatalln("TAKEPROFIT NEGATIVE")
 				}
