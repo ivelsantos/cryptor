@@ -54,6 +54,11 @@ func (h *Handler) AlgoDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := models.DeleteAlgo(id, owner)
+	count := 0
+	for err != nil && count < 100 {
+		err = models.DeleteAlgo(id, owner)
+		count += 1
+	}
 	if err != nil {
 		log.Print(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

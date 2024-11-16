@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"strconv"
+	"time"
 
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services/crypt/testnet"
@@ -78,11 +79,12 @@ func Buy(algo models.Algor) (bool, error) {
 
 		for err != nil && count < 100 {
 			err = models.InsertTestingBuy(tb)
+			time.Sleep(250 * time.Millisecond)
 			count += 1
 		}
 
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("InsertTestingBuy: %v", err)
 		}
 		return true, nil
 	case "waiting", "live":
@@ -135,7 +137,7 @@ func Sell(algo models.Algor) error {
 
 			res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
 
-			log.Printf("TESTING %v Sell: Margin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+			log.Printf("TESTING %v Sell: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
 		}
 		return nil
 	case "waiting", "live":
@@ -161,10 +163,12 @@ func StopLoss(algo models.Algor, stop float64) error {
 
 		ticker := algo.BaseAsset + algo.QuoteAsset
 
+		// log.Println("START")
 		bidPrice, askPrice, err := testnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
 		if err != nil {
 			return fmt.Errorf("testnet.GetDepthAsk: %v", err)
 		}
+		// log.Println("END")
 
 		var price float64
 		if askPrice > bidPrice {
@@ -206,7 +210,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 
 				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
 
-				log.Printf("TESTING %v Stop_loss: Margin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+				log.Printf("TESTING %v Stop_loss: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
 			}
 
 		}
@@ -217,6 +221,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 	default:
 		return fmt.Errorf("Unknown mode\n")
 	}
+
 }
 
 func TakeProfit(algo models.Algor, take float64) error {
@@ -272,7 +277,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 
 				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
 
-				log.Printf("TESTING %v Take_profit: Margin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+				log.Printf("TESTING %v Take_profit: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
 			}
 
 		}

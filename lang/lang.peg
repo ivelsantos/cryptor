@@ -228,13 +228,9 @@ Buy <- "Buy()" {
 	}
 	algo := algoAny.(models.Algor)
 
-	ok, err := operations.Buy(algo)
+	_, err := operations.Buy(algo)
 	if err != nil {
 		return nil, err
-	}
-
-	if ok {
-		c.globalStore["sign"] = "OK"
 	}
 
 	res, ok := c.globalStore["result"]
@@ -271,12 +267,7 @@ Sell <- "Sell()" {
 	return nil, nil
 }
 
-StopLoss <- "Stop_loss(" _ res:Number _ ")" {
-	_, ok := c.globalStore["sign"]
-	if ok {
-		return nil, nil
-	}
-
+StopLoss <- "Stop_loss(" _ res:Number _ ")" _ {
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
@@ -292,11 +283,6 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" {
 }
 
 TakeProfit <- "Take_profit(" _ res:Number _ ")" {
-	_, ok := c.globalStore["sign"]
-	if ok {
-		return nil, nil
-	}
-
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
