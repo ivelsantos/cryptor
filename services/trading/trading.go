@@ -28,7 +28,6 @@ func Trading() error {
 			go func(algo models.Algor) {
 				defer wg.Done()
 
-				// Placing the values on the globalStore
 				optAlgo := lang.GlobalStore("Algo", algo)
 
 				_, err = lang.Parse("", []byte(algo.Buycode), optAlgo)
