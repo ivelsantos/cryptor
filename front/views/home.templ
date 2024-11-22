@@ -86,6 +86,6 @@ templ algoTable(set HomeSettings) {
 
 templ metricColumn(algo models.Algor, set HomeSettings) {
 	<td class="whitespace-nowrap px-4 py-2 text-gray-900">
-		<p>{ strconv.FormatFloat(models.GetStatsById(set.Stats, algo.Id).AvgReturnPerMonth * 100, 'f', 4, 64) } % / mo</p>
+		<p>{ strconv.FormatFloat(models.GetStatsById(set.Stats, algo.Id).AvgReturnPerMonth * 100, 'f', 4, 64) } % / day</p>
 	</td>
 }

@@ -142,7 +142,7 @@ func createAlgoStatsTable(db *sql.DB) error {
         botid,
         SUM(return) AS total_return,
         AVG(return) AS average_return_per_trade,
-        (SUM(return) / (SUM(tradetimelength) / 2592000.0)) AS average_return_per_month,
+        (SUM(return) / (SUM(tradetimelength) / 86400.0)) AS average_return_per_day,
         SUM(CASE WHEN return > 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS success_rate,
         MAX(return) AS max_return,
         MIN(return) AS min_return,
@@ -165,7 +165,7 @@ SELECT
     bs.botid,
     bs.total_return,
     bs.average_return_per_trade,
-    bs.average_return_per_month,
+    bs.average_return_per_day,
     bs.success_rate,
     dc.max_drawdown,
     bs.average_trade_time
