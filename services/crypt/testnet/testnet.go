@@ -105,9 +105,13 @@ func GetDepth(apikey, secretkey, ticker string) (float64, float64, error) {
 	binance.UseTestnet = true
 	client := binance.NewClient(apikey, secretkey)
 
-	res, err := client.NewDepthService().Symbol(ticker).Limit(1).Do(context.Background())
+	res, err := client.NewDepthService().Symbol(ticker).Limit(10).Do(context.Background())
 	if err != nil {
 		return 0, 0, err
+	}
+
+	if len(res.Bids) < 1 || len(res.Asks) < 1 {
+		panic("Bids or Asks empty!!!")
 	}
 
 	bid := res.Bids[0].Price
