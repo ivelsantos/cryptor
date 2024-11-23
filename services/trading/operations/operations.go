@@ -18,6 +18,7 @@ func Buy(algo models.Algor) (bool, error) {
 		if err != nil {
 			return false, err
 		}
+
 		if len(transactions) != 0 {
 			return false, nil
 		}
@@ -97,7 +98,7 @@ func Buy(algo models.Algor) (bool, error) {
 func Sell(algo models.Algor) error {
 	switch algo.State {
 	case "testing":
-		transactions, err := models.GetTesting(algo.Id)
+		transactions, err := models.GetTestingSell(algo.Id)
 		if err != nil {
 			return fmt.Errorf("models.GetTesting: %v", err)
 		}
@@ -114,7 +115,7 @@ func Sell(algo models.Algor) error {
 				return fmt.Errorf("testnet.Sell: %v", err)
 			}
 
-			ts := models.TestingSell{Entryid: transaction.Id}
+			ts := models.TestingSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
 			ts.Orderstatus = string(order.Status)
 
 			cum, err := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
@@ -151,7 +152,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 
 	switch algo.State {
 	case "testing":
-		transactions, err := models.GetTesting(algo.Id)
+		transactions, err := models.GetTestingSell(algo.Id)
 		if err != nil {
 			return fmt.Errorf("models.GetTesting: %v", err)
 		}
@@ -166,12 +167,10 @@ func StopLoss(algo models.Algor, stop float64) error {
 
 		ticker := algo.BaseAsset + algo.QuoteAsset
 
-		// log.Println("START")
 		bidPrice, askPrice, err := testnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
 		if err != nil {
 			return fmt.Errorf("testnet.GetDepthAsk: %v", err)
 		}
-		// log.Println("END")
 
 		var price float64
 		if askPrice > bidPrice {
@@ -191,7 +190,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 					return fmt.Errorf("testnet.Sell: %v", err)
 				}
 
-				ts := models.TestingSell{Entryid: transaction.Id}
+				ts := models.TestingSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
 				ts.Orderstatus = string(order.Status)
 
 				cum, err := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
@@ -217,7 +216,6 @@ func StopLoss(algo models.Algor, stop float64) error {
 			}
 
 		}
-
 		return nil
 	case "waiting", "live":
 		return nil
@@ -230,7 +228,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 func TakeProfit(algo models.Algor, take float64) error {
 	switch algo.State {
 	case "testing":
-		transactions, err := models.GetTesting(algo.Id)
+		transactions, err := models.GetTestingSell(algo.Id)
 		if err != nil {
 			return err
 		}
@@ -261,7 +259,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 					return err
 				}
 
-				ts := models.TestingSell{Entryid: transaction.Id}
+				ts := models.TestingSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
 				ts.Orderstatus = string(order.Status)
 
 				cum, err := strconv.ParseFloat(order.CummulativeQuoteQuantity, 64)
