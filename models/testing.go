@@ -123,6 +123,41 @@ func GetTesting(botid int) ([]AlgoTesting, error) {
 	return algos, nil
 }
 
+func GetTestingBuy(botid int) ([]AlgoTesting, error) {
+	query := `
+		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM testing
+		WHERE sellvalue IS NULL
+		OR orderstatus IS NOT 'FILLED'
+		AND botid = ?
+	`
+	var algos []AlgoTesting
+
+	rows, err := db.Query(query, botid)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return nil, fmt.Errorf("Failed to retrieve testing algos: %v", err)
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var algo AlgoTesting
+
+		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Orderid, &algo.Ticket, &algo.Orderstatus, &algo.Buyvalue, &algo.Buyquantity, &algo.Buytime)
+		if err != nil {
+			return nil, err
+		}
+
+		algos = append(algos, algo)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return algos, nil
+}
+
 func GetUniqueAlgoTesting() ([]int, error) {
 	query := `
 	SELECT DISTINCT botid

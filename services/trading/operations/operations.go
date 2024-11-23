@@ -14,7 +14,7 @@ import (
 func Buy(algo models.Algor) (bool, error) {
 	switch algo.State {
 	case "testing":
-		transactions, err := models.GetTesting(algo.Id)
+		transactions, err := models.GetTestingBuy(algo.Id)
 		if err != nil {
 			return false, err
 		}
@@ -155,6 +155,9 @@ func StopLoss(algo models.Algor, stop float64) error {
 		if err != nil {
 			return fmt.Errorf("models.GetTesting: %v", err)
 		}
+		if len(transactions) < 1 {
+			return nil
+		}
 
 		account, err := models.GetAccountByName(algo.Owner)
 		if err != nil {
@@ -230,6 +233,9 @@ func TakeProfit(algo models.Algor, take float64) error {
 		transactions, err := models.GetTesting(algo.Id)
 		if err != nil {
 			return err
+		}
+		if len(transactions) < 1 {
+			return nil
 		}
 
 		account, err := models.GetAccountByName(algo.Owner)
