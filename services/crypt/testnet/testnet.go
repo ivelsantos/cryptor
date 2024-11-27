@@ -122,6 +122,13 @@ func GetDepth(apikey, secretkey, ticker string) (float64, float64, error) {
 		return 0, 0, err
 	}
 
+	for i := 0; i < 2 && (len(res.Bids) < 1 || len(res.Asks) < 1); i++ {
+		res, err = client.NewDepthService().Symbol(ticker).Do(context.Background())
+		if err != nil {
+			return 0, 0, err
+		}
+	}
+
 	if len(res.Bids) < 1 || len(res.Asks) < 1 {
 		return 0, 0, fmt.Errorf("GetDepth returned empty array. LastUpdateID: %v", res.LastUpdateID)
 	}

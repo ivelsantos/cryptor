@@ -37,7 +37,7 @@ func InitDB(filename string) error {
 		return err
 	}
 
-	err = createAlgoStatsTable(db)
+	err = createAlgoStatsView(db)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func createTestingTable(db *sql.DB) error {
 	return nil
 }
 
-func createAlgoStatsTable(db *sql.DB) error {
+func createAlgoStatsView(db *sql.DB) error {
 
 	query := `
 		CREATE VIEW IF NOT EXISTS algo_stats
@@ -125,7 +125,7 @@ func createAlgoStatsTable(db *sql.DB) error {
 		SELECT *
 		  FROM (
 		           SELECT botid,
-		                  (buyvalue - sellvalue) / buyvalue AS return,
+		                  ((sellvalue - (sellvalue * 0.001)) - (buyvalue + (buyvalue * 0.001))) / buyvalue AS return,
 		                  selltime,
 		                  buytime - LAG(selltime) OVER (PARTITION BY botid ORDER BY id) AS buytimelength,
 		                  selltime - buytime AS selltimelength,
