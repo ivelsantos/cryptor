@@ -73,6 +73,18 @@ func GetOrderStatus(apikey, secretkey, symbol string, orderid int) (string, erro
 	return string(order.Status), nil
 }
 
+func GetOrder(apikey, secretkey, symbol string, orderid int) (*binance.Order, error) {
+	binance.UseTestnet = true
+	client := binance.NewClient(apikey, secretkey)
+
+	order, err := client.NewGetOrderService().Symbol(symbol).OrderID(int64(orderid)).Do(context.Background())
+	if err != nil {
+		return order, err
+	}
+
+	return order, nil
+}
+
 func getCoinBalance(coin string, balances []binance.Balance) (string, error) {
 	if len(balances) < 1 {
 		return "0", fmt.Errorf("Balances empty")
