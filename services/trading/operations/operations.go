@@ -169,7 +169,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 
 		bidPrice, askPrice, err := testnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
 		if err != nil {
-			return fmt.Errorf("testnet.GetDepthAsk: %v", err)
+			return err
 		}
 
 		var price float64
