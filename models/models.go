@@ -98,6 +98,26 @@ func createTestingTable(db *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS testing (
 		id INTEGER PRIMARY KEY,
 		botid INTEGER NOT NULL,
+		ticket TEXT NOT NULL,
+		buyvalue REAL NOT NULL,
+		buytime INTEGER NOT NULL,
+		sellvalue REAL,
+		selltime INTEGER
+	)`
+
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("Failed to create table: %v", err)
+	}
+
+	return nil
+}
+
+func createTransactionsTable(db *sql.DB) error {
+	query := `
+	CREATE TABLE IF NOT EXISTS transactions (
+		id INTEGER PRIMARY KEY,
+		botid INTEGER NOT NULL,
 		orderid INTEGER NOT NULL,
 		ticket TEXT NOT NULL,
 		orderstatus TEXT NOT NULL,

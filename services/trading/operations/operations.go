@@ -8,12 +8,49 @@ import (
 	"time"
 
 	"github.com/ivelsantos/cryptor/models"
+	"github.com/ivelsantos/cryptor/services/crypt/testingnet"
 	"github.com/ivelsantos/cryptor/services/crypt/testnet"
 )
 
 func Buy(algo models.Algor) (bool, error) {
 	switch algo.State {
 	case "testing":
+		transactions, err := models.GetTestingBuy(algo.Id)
+		if err != nil {
+			return false, err
+		}
+		if len(transactions) != 0 {
+			return false, nil
+		}
+
+		ticket := algo.BaseAsset + algo.QuoteAsset
+		account, err := models.GetAccountByName(algo.Owner)
+		if err != nil {
+			return false, fmt.Errorf("GetAccountByName: %v", err)
+		}
+		_, askPrice, err := testingnet.GetDepth(account.ApiKey, account.SecretKey, ticket)
+		if err != nil {
+			return false, fmt.Errorf("GetDepth: %v", err)
+		}
+
+		tb := models.TestingBuy{Botid: algo.Id, Baseasset: algo.BaseAsset, Quoteasset: algo.QuoteAsset}
+		tb.Buyvalue = askPrice
+		tb.Buytime = time.Now().Unix()
+
+		err = models.InsertTestingBuy(tb)
+		count := 0
+
+		for err != nil && count < 100 {
+			err = models.InsertTestingBuy(tb)
+			time.Sleep(250 * time.Millisecond)
+			count += 1
+		}
+
+		if err != nil {
+			return false, fmt.Errorf("InsertTestingBuy: %v", err)
+		}
+		return true, nil
+	case "live":
 		transactions, err := models.GetTestingBuy(algo.Id)
 		if err != nil {
 			return false, err
@@ -82,7 +119,7 @@ func Buy(algo models.Algor) (bool, error) {
 			log.Fatalf("Buy order %v not fulfilled\n", order.OrderID)
 		}
 
-		tb := models.TestingBuy{Botid: algo.Id, Baseasset: algo.BaseAsset, Quoteasset: algo.QuoteAsset}
+		tb := models.TransactionBuy{Botid: algo.Id, Baseasset: algo.BaseAsset, Quoteasset: algo.QuoteAsset}
 		tb.Orderid = int(order.OrderID)
 		tb.Orderstatus = string(updatedOrder.Status)
 
@@ -99,11 +136,11 @@ func Buy(algo models.Algor) (bool, error) {
 		tb.Buyquantity = quant
 		tb.Buytime = int(order.TransactTime)
 
-		err = models.InsertTestingBuy(tb)
+		err = models.InsertTransactionBuy(tb)
 		count = 0
 
 		for err != nil && count < 100 {
-			err = models.InsertTestingBuy(tb)
+			err = models.InsertTransactionBuy(tb)
 			time.Sleep(250 * time.Millisecond)
 			count += 1
 		}
@@ -112,7 +149,7 @@ func Buy(algo models.Algor) (bool, error) {
 			return false, fmt.Errorf("InsertTestingBuy: %v", err)
 		}
 		return true, nil
-	case "waiting", "live":
+	case "waiting":
 		return false, nil
 	default:
 		return false, fmt.Errorf("Unknown mode\n")
@@ -122,7 +159,7 @@ func Buy(algo models.Algor) (bool, error) {
 func Sell(algo models.Algor) error {
 	switch algo.State {
 	case "testing":
-		transactions, err := models.GetTestingSell(algo.Id)
+		transactions, err := models.GetTransactionSell(algo.Id)
 		if err != nil {
 			return fmt.Errorf("models.GetTesting: %v", err)
 		}
@@ -134,7 +171,7 @@ func Sell(algo models.Algor) error {
 
 		for _, transaction := range transactions {
 			quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
-			order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
+			order, err := testingnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
 			if err != nil {
 				return fmt.Errorf("testnet.Sell: %v", err)
 			}
@@ -161,7 +198,7 @@ func Sell(algo models.Algor) error {
 				log.Fatalf("Sell order %v not fulfilled\n", order.OrderID)
 			}
 
-			ts := models.TestingSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
+			ts := models.TransactionSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
 			ts.Orderstatus = string(updatedOrder.Status)
 
 			cum, err := strconv.ParseFloat(updatedOrder.CummulativeQuoteQuantity, 64)
@@ -171,11 +208,11 @@ func Sell(algo models.Algor) error {
 			ts.Sellvalue = cum
 			ts.Selltime = int(order.TransactTime)
 
-			err = models.InsertTestingSell(ts)
+			err = models.InsertTransactionSell(ts)
 			count = 0
 
 			for err != nil && count < 100 {
-				err = models.InsertTestingSell(ts)
+				err = models.InsertTransactionSell(ts)
 				count += 1
 			}
 			if err != nil {
@@ -195,10 +232,53 @@ func Sell(algo models.Algor) error {
 }
 
 func StopLoss(algo models.Algor, stop float64) error {
-
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTestingSell(algo.Id)
+		if err != nil {
+			return fmt.Errorf("models.GetTesting: %v", err)
+		}
+		if len(transactions) < 1 {
+			return nil
+		}
+
+		account, err := models.GetAccountByName(algo.Owner)
+		if err != nil {
+			return fmt.Errorf("models.GetAccountByName: %v", err)
+		}
+		ticker := algo.BaseAsset + algo.QuoteAsset
+
+		bidPrice, _, err := testingnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
+		if err != nil {
+			return err
+		}
+
+		for _, transaction := range transactions {
+			buyprice := transaction.Buyvalue
+			sellPrice := buyprice - (stop * buyprice)
+
+			if bidPrice <= sellPrice {
+				ts := models.TestingSell{Entryid: transaction.Id, Sellvalue: bidPrice, Selltime: time.Now().Unix()}
+
+				err = models.InsertTestingSell(ts)
+				count := 0
+				for err != nil && count < 100 {
+					err = models.InsertTestingSell(ts)
+					count += 1
+				}
+				if err != nil {
+					return fmt.Errorf("models.InsertTestingSell: %v", err)
+				}
+
+				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
+
+				log.Printf("TESTING %v Stop_loss: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+			}
+
+		}
+		return nil
+	case "live":
+		transactions, err := models.GetTransactionSell(algo.Id)
 		if err != nil {
 			return fmt.Errorf("models.GetTesting: %v", err)
 		}
@@ -258,7 +338,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 					log.Fatalf("StopLoss order %v not fulfilled\n", order.OrderID)
 				}
 
-				ts := models.TestingSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
+				ts := models.TransactionSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
 				ts.Orderstatus = string(updatedOrder.Status)
 
 				cum, err := strconv.ParseFloat(updatedOrder.CummulativeQuoteQuantity, 64)
@@ -268,10 +348,10 @@ func StopLoss(algo models.Algor, stop float64) error {
 				ts.Sellvalue = cum
 				ts.Selltime = int(order.TransactTime)
 
-				err = models.InsertTestingSell(ts)
+				err = models.InsertTransactionSell(ts)
 				count = 0
 				for err != nil && count < 100 {
-					err = models.InsertTestingSell(ts)
+					err = models.InsertTransactionSell(ts)
 					count += 1
 				}
 				if err != nil {
@@ -285,7 +365,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 
 		}
 		return nil
-	case "waiting", "live":
+	case "waiting":
 		return nil
 	default:
 		return fmt.Errorf("Unknown mode\n")
@@ -297,6 +377,50 @@ func TakeProfit(algo models.Algor, take float64) error {
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTestingSell(algo.Id)
+		if err != nil {
+			return err
+		}
+		if len(transactions) < 1 {
+			return nil
+		}
+
+		account, err := models.GetAccountByName(algo.Owner)
+		if err != nil {
+			return err
+		}
+
+		ticker := algo.BaseAsset + algo.QuoteAsset
+
+		bidPrice, _, err := testingnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
+		if err != nil {
+			return err
+		}
+
+		for _, transaction := range transactions {
+			buyprice := transaction.Buyvalue
+			sellPrice := buyprice + (take * buyprice)
+
+			if bidPrice > sellPrice {
+				ts := models.TestingSell{Entryid: transaction.Id, Sellvalue: bidPrice, Selltime: time.Now().Unix()}
+				err = models.InsertTestingSell(ts)
+				count := 0
+				for err != nil && count < 100 {
+					err = models.InsertTestingSell(ts)
+					count += 1
+				}
+				if err != nil {
+					return err
+				}
+
+				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
+
+				log.Printf("TESTING %v Take_profit: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+			}
+
+		}
+		return nil
+	case "live":
+		transactions, err := models.GetTransactionSell(algo.Id)
 		if err != nil {
 			return err
 		}
@@ -349,7 +473,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 					log.Fatalf("TakeProfit order %v not fulfilled\n", order.OrderID)
 				}
 
-				ts := models.TestingSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
+				ts := models.TransactionSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
 				ts.Orderstatus = string(updatedOrder.Status)
 
 				cum, err := strconv.ParseFloat(updatedOrder.CummulativeQuoteQuantity, 64)
@@ -359,10 +483,10 @@ func TakeProfit(algo models.Algor, take float64) error {
 				ts.Sellvalue = cum
 				ts.Selltime = int(order.TransactTime)
 
-				err = models.InsertTestingSell(ts)
+				err = models.InsertTransactionSell(ts)
 				count = 0
 				for err != nil && count < 100 {
-					err = models.InsertTestingSell(ts)
+					err = models.InsertTransactionSell(ts)
 					count += 1
 				}
 				if err != nil {
@@ -376,7 +500,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 
 		}
 		return nil
-	case "waiting", "live":
+	case "waiting":
 		return nil
 	default:
 		return fmt.Errorf("Unknown mode\n")

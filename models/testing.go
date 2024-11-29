@@ -6,35 +6,27 @@ import (
 )
 
 type AlgoTesting struct {
-	Id          int
-	Botid       int
-	Orderid     int
-	Ticket      string
-	Orderstatus string
-	Buyvalue    float64
-	Buyquantity float64
-	Buytime     int
-	Sellvalue   float64
-	Selltime    int
+	Id        int
+	Botid     int
+	Ticket    string
+	Buyvalue  float64
+	Buytime   int64
+	Sellvalue float64
+	Selltime  int64
 }
 
 type TestingBuy struct {
-	Botid       int
-	Orderid     int
-	Baseasset   string
-	Quoteasset  string
-	Orderstatus string
-	Buyvalue    float64
-	Buyquantity float64
-	Buytime     int
+	Botid      int
+	Baseasset  string
+	Quoteasset string
+	Buyvalue   float64
+	Buytime    int64
 }
 
 type TestingSell struct {
-	Entryid     int
-	Orderstatus string
-	Sellvalue   float64
-	Selltime    int
-	Orderid     int
+	Entryid   int
+	Sellvalue float64
+	Selltime  int64
 }
 
 type AlgoStats struct {
@@ -49,8 +41,8 @@ type AlgoStats struct {
 
 func InsertTestingBuy(tb TestingBuy) error {
 	query := `
-		INSERT INTO testing (botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO testing (botid, ticket, buyvalue, buytime)
+		VALUES (?, ?, ?, ?)
 	`
 
 	stmt, err := db.Prepare(query)
@@ -59,7 +51,7 @@ func InsertTestingBuy(tb TestingBuy) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(tb.Botid, tb.Orderid, tb.Baseasset+tb.Quoteasset, tb.Orderstatus, tb.Buyvalue, tb.Buyquantity, tb.Buytime)
+	_, err = stmt.Exec(tb.Botid, tb.Baseasset+tb.Quoteasset, tb.Buyvalue, tb.Buytime)
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
@@ -71,9 +63,7 @@ func InsertTestingSell(ts TestingSell) error {
 	query := `
 		UPDATE testing
 		SET sellvalue = ?,
-			selltime = ?,
-			orderstatus = ?,
-			orderid = ?
+			selltime = ?
 		WHERE id = ?
 	`
 
@@ -83,28 +73,7 @@ func InsertTestingSell(ts TestingSell) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(ts.Sellvalue, ts.Selltime, ts.Orderstatus, ts.Orderid, ts.Entryid)
-	if err != nil {
-		return fmt.Errorf("Failed to execute statement: %v", err)
-	}
-
-	return nil
-}
-
-func UpdateOrderStatus(status string, id int) error {
-	query := `
-		UPDATE testing
-		SET orderstatus = ?
-		WHERE id = ?
-	`
-
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		return fmt.Errorf("Failed to prepare statement: %v", err)
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(status, id)
+	_, err = stmt.Exec(ts.Sellvalue, ts.Selltime, ts.Entryid)
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
@@ -114,9 +83,8 @@ func UpdateOrderStatus(status string, id int) error {
 
 func GetTestingSell(botid int) ([]AlgoTesting, error) {
 	query := `
-		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM testing
+		SELECT id, botid, ticket, buyvalue, buytime FROM testing
 		WHERE sellvalue IS NULL
-		AND orderstatus IS 'FILLED'
 		AND botid = ?
 	`
 	var algos []AlgoTesting
@@ -132,7 +100,7 @@ func GetTestingSell(botid int) ([]AlgoTesting, error) {
 	for rows.Next() {
 		var algo AlgoTesting
 
-		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Orderid, &algo.Ticket, &algo.Orderstatus, &algo.Buyvalue, &algo.Buyquantity, &algo.Buytime)
+		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Ticket, &algo.Buyvalue, &algo.Buytime)
 		if err != nil {
 			return nil, err
 		}
@@ -149,8 +117,8 @@ func GetTestingSell(botid int) ([]AlgoTesting, error) {
 
 func GetTestingBuy(botid int) ([]AlgoTesting, error) {
 	query := `
-		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM testing
-		WHERE (sellvalue IS NULL OR orderstatus IS NOT 'FILLED')
+		SELECT id, botid, ticket, buyvalue, buytime FROM testing
+		WHERE sellvalue IS NULL
 		AND botid = ?
 	`
 	var algos []AlgoTesting
@@ -166,41 +134,7 @@ func GetTestingBuy(botid int) ([]AlgoTesting, error) {
 	for rows.Next() {
 		var algo AlgoTesting
 
-		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Orderid, &algo.Ticket, &algo.Orderstatus, &algo.Buyvalue, &algo.Buyquantity, &algo.Buytime)
-		if err != nil {
-			return nil, err
-		}
-
-		algos = append(algos, algo)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return algos, nil
-}
-
-func GetTestingPending(botid int) ([]AlgoTesting, error) {
-	query := `
-		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM testing
-		WHERE orderstatus IS NOT 'FILLED'
-		AND botid = ?
-	`
-	var algos []AlgoTesting
-
-	rows, err := db.Query(query, botid)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			return nil, fmt.Errorf("Failed to retrieve testing algos: %v", err)
-		}
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var algo AlgoTesting
-
-		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Orderid, &algo.Ticket, &algo.Orderstatus, &algo.Buyvalue, &algo.Buyquantity, &algo.Buytime)
+		err := rows.Scan(&algo.Id, &algo.Botid, &algo.Ticket, &algo.Buyvalue, &algo.Buytime)
 		if err != nil {
 			return nil, err
 		}
