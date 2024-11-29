@@ -378,7 +378,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 	case "testing":
 		transactions, err := models.GetTestingSell(algo.Id)
 		if err != nil {
-			return err
+			return fmt.Errorf("GetTestingSell: %v", err)
 		}
 		if len(transactions) < 1 {
 			return nil
@@ -386,7 +386,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 
 		account, err := models.GetAccountByName(algo.Owner)
 		if err != nil {
-			return err
+			return fmt.Errorf("GetAccountByName: %v", err)
 		}
 
 		ticker := algo.BaseAsset + algo.QuoteAsset
@@ -409,7 +409,7 @@ func TakeProfit(algo models.Algor, take float64) error {
 					count += 1
 				}
 				if err != nil {
-					return err
+					return fmt.Errorf("InsertTestingSell: %v", err)
 				}
 
 				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
