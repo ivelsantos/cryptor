@@ -188,10 +188,9 @@ func GetUniqueAlgoTesting() ([]int, error) {
 	return botids, nil
 }
 
-func EraseTesting() error {
+func eraseTesting() error {
 	query := `
 		DELETE FROM testing
-		WHERE sellvalue IS NULL
 	`
 
 	stmt, err := db.Prepare(query)
@@ -209,6 +208,37 @@ func EraseTesting() error {
 	}
 
 	return nil
+}
+
+func InsertTestingCalcTable() error {
+	query := `
+		INSERT INTO testing_calc (botid, return, buytime, selltime, buytimelength, selltimelength, tradetimelength)
+SELECT *
+  FROM (
+           SELECT botid,
+                  ( (sellvalue - (sellvalue * 0.001) ) - (buyvalue + (buyvalue * 0.001) ) ) / buyvalue AS return,
+                  buytime,
+                  selltime,
+                  buytime - LAG(selltime) OVER (PARTITION BY botid ORDER BY id) AS buytimelength,
+                  selltime - buytime AS selltimelength,
+                  selltime - LAG(selltime) OVER (PARTITION BY botid ORDER BY id) AS tradetimelength
+             FROM testing
+            ORDER BY id
+       )
+  WHERE buytimelength IS NOT NULL AND 
+       return IS NOT NULL;
+	`
+	_, err := db.Exec(query)
+	for checkSqlBusy(err) {
+		_, err = db.Exec(query)
+	}
+	if err != nil {
+		return fmt.Errorf("Failed to insert into table: %v", err)
+	}
+
+	err = eraseTesting()
+
+	return err
 }
 
 func GetAllAlgoStats() ([]AlgoStats, error) {

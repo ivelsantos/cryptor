@@ -10,7 +10,7 @@ import (
 )
 
 func Trading() error {
-	err := models.EraseTesting()
+	err := models.InsertTestingCalcTable()
 	if err != nil {
 		return err
 	}
