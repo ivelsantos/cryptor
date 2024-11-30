@@ -38,14 +38,6 @@ func Buy(algo models.Algor) (bool, error) {
 		tb.Buytime = time.Now().Unix()
 
 		err = models.InsertTestingBuy(tb)
-		count := 0
-
-		for err != nil && count < 100 {
-			err = models.InsertTestingBuy(tb)
-			time.Sleep(250 * time.Millisecond)
-			count += 1
-		}
-
 		if err != nil {
 			return false, fmt.Errorf("InsertTestingBuy: %v", err)
 		}

@@ -60,6 +60,9 @@ func InsertTransactionBuy(tb TransactionBuy) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(tb.Botid, tb.Orderid, tb.Baseasset+tb.Quoteasset, tb.Orderstatus, tb.Buyvalue, tb.Buyquantity, tb.Buytime)
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec(tb.Botid, tb.Orderid, tb.Baseasset+tb.Quoteasset, tb.Orderstatus, tb.Buyvalue, tb.Buyquantity, tb.Buytime)
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
@@ -84,6 +87,9 @@ func InsertTransactionSell(ts TransactionSell) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(ts.Sellvalue, ts.Selltime, ts.Orderstatus, ts.Orderid, ts.Entryid)
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec(ts.Sellvalue, ts.Selltime, ts.Orderstatus, ts.Orderid, ts.Entryid)
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
@@ -105,6 +111,9 @@ func UpdateOrderStatus(status string, id int) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(status, id)
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec(status, id)
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
@@ -261,6 +270,9 @@ func EraseTransaction() error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec()
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec()
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}

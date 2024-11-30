@@ -52,6 +52,9 @@ func InsertTestingBuy(tb TestingBuy) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(tb.Botid, tb.Baseasset+tb.Quoteasset, tb.Buyvalue, tb.Buytime)
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec(tb.Botid, tb.Baseasset+tb.Quoteasset, tb.Buyvalue, tb.Buytime)
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
@@ -198,6 +201,9 @@ func EraseTesting() error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec()
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec()
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}
