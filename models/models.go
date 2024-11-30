@@ -37,6 +37,11 @@ func InitDB(filename string) error {
 		return err
 	}
 
+	err = createTransactionsTable(db)
+	if err != nil {
+		return err
+	}
+
 	err = createAlgoStatsView(db)
 	if err != nil {
 		return err
