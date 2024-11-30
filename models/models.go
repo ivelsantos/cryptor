@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -18,6 +19,11 @@ func InitDB(filename string) error {
 	}
 
 	err = walMode(db)
+	if err != nil {
+		return err
+	}
+
+	err = busyTimeOut(db)
 	if err != nil {
 		return err
 	}
@@ -54,6 +60,15 @@ func walMode(db *sql.DB) error {
 	_, err := db.Exec("PRAGMA journal_mode = wal")
 	if err != nil {
 		return fmt.Errorf("Failed to activate wal2 mode: %v", err)
+	}
+
+	return nil
+}
+
+func busyTimeOut(db *sql.DB) error {
+	_, err := db.Exec("PRAGMA busy_timeout = 5000")
+	if err != nil {
+		return fmt.Errorf("Failed set busy_timeout: %v", err)
 	}
 
 	return nil
@@ -206,4 +221,12 @@ JOIN
 	}
 
 	return nil
+}
+
+func checkSqlBusy(err error) bool {
+	if err != nil && strings.Contains(err.Error(), "database is locked (5) (SQLITE_BUSY)") {
+		return true
+	}
+
+	return false
 }

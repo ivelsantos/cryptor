@@ -74,6 +74,9 @@ func InsertTestingSell(ts TestingSell) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(ts.Sellvalue, ts.Selltime, ts.Entryid)
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec(ts.Sellvalue, ts.Selltime, ts.Entryid)
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}

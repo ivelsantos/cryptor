@@ -216,7 +216,7 @@ func Sell(algo models.Algor) error {
 				count += 1
 			}
 			if err != nil {
-				return fmt.Errorf("models.InsertTestingSell: %v", err)
+				return fmt.Errorf("models.InsertTransactionSell: %v", err)
 			}
 
 			res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
@@ -261,11 +261,6 @@ func StopLoss(algo models.Algor, stop float64) error {
 				ts := models.TestingSell{Entryid: transaction.Id, Sellvalue: bidPrice, Selltime: time.Now().Unix()}
 
 				err = models.InsertTestingSell(ts)
-				count := 0
-				for err != nil && count < 100 {
-					err = models.InsertTestingSell(ts)
-					count += 1
-				}
 				if err != nil {
 					return fmt.Errorf("models.InsertTestingSell: %v", err)
 				}
@@ -355,7 +350,7 @@ func StopLoss(algo models.Algor, stop float64) error {
 					count += 1
 				}
 				if err != nil {
-					return fmt.Errorf("models.InsertTestingSell: %v", err)
+					return fmt.Errorf("models.InsertTransactionSell: %v", err)
 				}
 
 				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
@@ -403,11 +398,6 @@ func TakeProfit(algo models.Algor, take float64) error {
 			if bidPrice > sellPrice {
 				ts := models.TestingSell{Entryid: transaction.Id, Sellvalue: bidPrice, Selltime: time.Now().Unix()}
 				err = models.InsertTestingSell(ts)
-				count := 0
-				for err != nil && count < 100 {
-					err = models.InsertTestingSell(ts)
-					count += 1
-				}
 				if err != nil {
 					return fmt.Errorf("InsertTestingSell: %v", err)
 				}
