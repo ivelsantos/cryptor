@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/ivelsantos/cryptor/front"
+	// "github.com/ivelsantos/cryptor/front"
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services"
+	"github.com/ivelsantos/cryptor/tui"
 	"log"
 )
 
@@ -14,5 +15,9 @@ func main() {
 	}
 
 	go services.Services()
-	front.Front()
+
+	if err = tui.Tui(); err != nil {
+		log.Fatal(err)
+	}
+	// front.Front()
 }
