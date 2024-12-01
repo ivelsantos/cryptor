@@ -11,7 +11,7 @@ import (
 )
 
 func Tui() {
-	p := tea.NewProgram(initialModel())
+	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
@@ -19,17 +19,16 @@ func Tui() {
 }
 
 type model struct {
-	user     string
-	users    []string
-	cursor   int
-	selected map[int]struct{}
+	user   string
+	users  []string
+	cursor int
 }
 
 func initialModel() model {
 	users := make([]string, 0, 5)
 	accounts, err := models.GetAccounts()
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 
 	for _, account := range accounts {
@@ -37,8 +36,7 @@ func initialModel() model {
 	}
 
 	return model{
-		users:    users,
-		selected: make(map[int]struct{}),
+		users: users,
 	}
 }
 
@@ -61,18 +59,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor++
 			}
 		case "enter", " ":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				m.selected[m.cursor] = struct{}{}
-			}
+			m.user = m.users[m.cursor]
 		}
 	}
 	return m, nil
 }
 
 func (m model) View() string {
+	if m.user != "" {
+		page, err := home(m.user)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return page
+	}
+
 	s := "\nChoose the user:\n\n"
 
 	for i, choice := range m.users {
@@ -80,13 +81,7 @@ func (m model) View() string {
 		if m.cursor == i {
 			cursor = ">"
 		}
-
-		checked := " "
-		if _, ok := m.selected[i]; ok {
-			checked = "x"
-		}
-
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+		s += fmt.Sprintf("%s %s\n", cursor, choice)
 	}
 
 	s += "\nPress ctrl+c to quit.\n"
