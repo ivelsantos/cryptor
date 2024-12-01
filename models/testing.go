@@ -282,3 +282,23 @@ func GetStatsById(stats []AlgoStats, botid int) AlgoStats {
 
 	return AlgoStats{AvgReturnPerMonth: 0}
 }
+
+func GetStatsById2(botid int) (AlgoStats, error) {
+	query := `
+	SELECT * FROM algo_stats
+	WHERE botid = ?
+	`
+	var stat AlgoStats
+
+	row := db.QueryRow(query, botid)
+
+	err := row.Scan(&stat.Botid, &stat.TotalReturn, &stat.AvgReturnPerTrade, &stat.AvgReturnPerMonth, &stat.SucessRate, &stat.MaxDrawdown, &stat.AvgTradeTime)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return AlgoStats{AvgReturnPerMonth: 0}, nil
+		}
+		return stat, fmt.Errorf("Failed to retrieve stats: %v", err)
+	}
+
+	return stat, nil
+}

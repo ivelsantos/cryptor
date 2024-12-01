@@ -211,9 +211,9 @@ func Sell(algo models.Algor) error {
 				return fmt.Errorf("models.InsertTransactionSell: %v", err)
 			}
 
-			res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
+			// res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
 
-			log.Printf("TESTING %v Sell: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+			// log.Printf("TESTING %v Sell: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
 		}
 		return nil
 	case "waiting", "live":
@@ -257,9 +257,9 @@ func StopLoss(algo models.Algor, stop float64) error {
 					return fmt.Errorf("models.InsertTestingSell: %v", err)
 				}
 
-				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
+				// res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
 
-				log.Printf("TESTING %v Stop_loss: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+				// log.Printf("TESTING %v Stop_loss: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
 			}
 
 		}
@@ -345,9 +345,9 @@ func StopLoss(algo models.Algor, stop float64) error {
 					return fmt.Errorf("models.InsertTransactionSell: %v", err)
 				}
 
-				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
+				// res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
 
-				log.Printf("TESTING %v Stop_loss: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+				// log.Printf("TESTING %v Stop_loss: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
 			}
 
 		}
@@ -394,9 +394,9 @@ func TakeProfit(algo models.Algor, take float64) error {
 					return fmt.Errorf("InsertTestingSell: %v", err)
 				}
 
-				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
+				// res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
 
-				log.Printf("TESTING %v Take_profit: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+				// log.Printf("TESTING %v Take_profit: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
 			}
 
 		}
@@ -475,9 +475,9 @@ func TakeProfit(algo models.Algor, take float64) error {
 					return err
 				}
 
-				res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
+				// res := (ts.Sellvalue - transaction.Buyvalue) / transaction.Buyvalue
 
-				log.Printf("TESTING %v Take_profit: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
+				// log.Printf("TESTING %v Take_profit: \tMargin %v\tBuyvalue %v\tSellvalue %v\n", algo.Name, roundFloat(res, 5), transaction.Buyvalue, ts.Sellvalue)
 			}
 
 		}
