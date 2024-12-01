@@ -5,12 +5,15 @@ import (
 	"log"
 	"os"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/ivelsantos/cryptor/models"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 func Tui() {
+
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
@@ -18,10 +21,19 @@ func Tui() {
 	}
 }
 
+var baseStyle = lipgloss.NewStyle().
+	BorderStyle(lipgloss.NormalBorder()).
+	Margin(1).
+	PaddingLeft(4).
+	PaddingRight(4).
+	BorderForeground(lipgloss.Color("240")).
+	Background(lipgloss.Color(237))
+
 type model struct {
 	user   string
 	users  []string
 	cursor int
+	table  table.Model
 }
 
 func initialModel() model {
@@ -67,11 +79,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	if m.user != "" {
-		page, err := home(m.user)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return page
+		return baseStyle.Render(home(m.user))
 	}
 
 	s := "\nChoose the user:\n\n"
@@ -86,5 +94,5 @@ func (m model) View() string {
 
 	s += "\nPress ctrl+c to quit.\n"
 
-	return s
+	return baseStyle.Render(s)
 }
