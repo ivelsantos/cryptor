@@ -15,9 +15,7 @@ func main() {
 	}
 
 	go services.Services()
+	tui.Tui()
 
-	if err = tui.Tui(); err != nil {
-		log.Fatal(err)
-	}
 	// front.Front()
 }

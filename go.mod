@@ -5,6 +5,7 @@ go 1.23.1
 require (
 	github.com/a-h/templ v0.2.778
 	github.com/adshao/go-binance/v2 v2.6.1
+	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/gorilla/sessions v1.4.0
 	modernc.org/sqlite v1.33.1
 )
@@ -12,7 +13,6 @@ require (
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
-	github.com/charmbracelet/bubbletea v1.2.4 // indirect
 	github.com/charmbracelet/lipgloss v1.0.0 // indirect
 	github.com/charmbracelet/x/ansi v0.4.5 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
