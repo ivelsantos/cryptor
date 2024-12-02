@@ -5,10 +5,16 @@ import (
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ivelsantos/cryptor/models"
 )
 
-func home(user string) string {
+type algosModel struct {
+	user  string
+	table table.Model
+}
+
+func algosNew(user string) tea.Model {
 	algos, err := models.GetAlgos(user)
 	if err != nil {
 		log.Fatal(err)
@@ -39,5 +45,17 @@ func home(user string) string {
 		table.WithHeight(len(algos)+1),
 	)
 
-	return t.View()
+	return algosModel{user: user, table: t}
+}
+
+func (m algosModel) Init() tea.Cmd {
+	return nil
+}
+
+func (m algosModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return main, nil
+}
+
+func (m algosModel) View() string {
+	return m.table.View()
 }
