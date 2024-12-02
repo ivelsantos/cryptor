@@ -53,6 +53,13 @@ func (m algosModel) Init() tea.Cmd {
 }
 
 func (m algosModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyCtrlN:
+			return insertModel(createalgoNew()), nil
+		}
+	}
 	return main, nil
 }
 
