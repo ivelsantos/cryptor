@@ -43,24 +43,26 @@ func createalgoNew() tea.Model {
 
 		switch i {
 		case 0:
-			t.Placeholder = "Algo name"
+			t.Prompt = "Algo Name: "
+			t.Placeholder = "..."
 			t.Focus()
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
 		case 1:
-			t.Placeholder = "Base Asset"
-			t.CharLimit = 64
+			t.Prompt = "Base Asset: "
+			t.Placeholder = "..."
+			t.CharLimit = 5
 		case 2:
-			t.Placeholder = "Quote Asset"
-			t.EchoMode = textinput.EchoPassword
-			t.EchoCharacter = '•'
+			t.Prompt = "Quote Asset: "
+			t.Placeholder = "..."
+			t.CharLimit = 5
 		}
 
 		m.inputs[i] = t
 	}
 
 	ta := textarea.New()
-	ta.Placeholder = "Once upon a time..."
+	ta.Placeholder = "..."
 	m.textarea = ta
 
 	return m
