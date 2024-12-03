@@ -18,7 +18,6 @@ func Tui() {
 
 type mainModel struct {
 	models []tea.Model
-	user   string
 }
 
 var main mainModel
@@ -43,8 +42,8 @@ func insertModel(model tea.Model) tea.Model {
 }
 
 func (m mainModel) Init() tea.Cmd {
-	// return m.model.Init()
-	return nil
+	return m.models[len(m.models)-1].Init()
+	// return nil
 }
 
 func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

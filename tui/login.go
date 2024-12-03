@@ -46,7 +46,8 @@ func (m loginModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor++
 			}
 		case "enter", " ":
-			return insertModel(algosNew(m.users[m.cursor])), nil
+			m.user = m.users[m.cursor]
+			return insertModel(algosNew(m.user)), nil
 		}
 	}
 	return main, nil
