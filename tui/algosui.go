@@ -57,7 +57,7 @@ func (m algosModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlN:
-			return insertModel(createalgoNew()), nil
+			return insertModel(createalgoNew(m.user)), nil
 		}
 	}
 	return main, nil

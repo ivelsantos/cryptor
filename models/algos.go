@@ -9,7 +9,7 @@ type Algor struct {
 	Id         int
 	Owner      string
 	Name       string
-	Created    int
+	Created    int64
 	Buycode    string
 	State      string
 	BaseAsset  string
@@ -29,6 +29,9 @@ func InsertAlgo(algor Algor) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(algor.Owner, algor.Name, algor.Created, algor.Buycode, algor.State, algor.BaseAsset, algor.QuoteAsset)
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec(algor.Owner, algor.Name, algor.Created, algor.Buycode, algor.State, algor.BaseAsset, algor.QuoteAsset)
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
 	}

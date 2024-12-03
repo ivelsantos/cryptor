@@ -3,12 +3,14 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ivelsantos/cryptor/models"
 )
 
 var (
@@ -28,11 +30,13 @@ type createalgoModel struct {
 	inputs     []textinput.Model
 	cursorMode cursor.Mode
 	textarea   textarea.Model
+	user       string
 }
 
-func createalgoNew() tea.Model {
+func createalgoNew(user string) tea.Model {
 	m := createalgoModel{
 		inputs: make([]textinput.Model, 3),
+		user:   user,
 	}
 
 	var t textinput.Model
@@ -62,7 +66,8 @@ func createalgoNew() tea.Model {
 	}
 
 	ta := textarea.New()
-	ta.Placeholder = "..."
+	ta.Placeholder = "Code here..."
+	ta.CharLimit = 500
 	m.textarea = ta
 
 	return m
@@ -77,19 +82,7 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
-			return m, tea.Quit
-
-			// Change cursor mode
-		case "ctrl+r":
-			m.cursorMode++
-			if m.cursorMode > cursor.CursorHide {
-				m.cursorMode = cursor.CursorBlink
-			}
-			cmds := make([]tea.Cmd, len(m.inputs))
-			for i := range m.inputs {
-				cmds[i] = m.inputs[i].Cursor.SetMode(m.cursorMode)
-			}
-			return m, tea.Batch(cmds...)
+			return main, tea.Quit
 
 			// Set focus to next input
 		case "tab", "shift+tab", "up", "down":
@@ -129,11 +122,24 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.textarea.Blur()
 			}
 
-			return m, tea.Batch(cmds...)
+			return main, tea.Batch(cmds...)
 		case "enter":
 			s := msg.String()
 			if s == "enter" && m.focusIndex == len(m.inputs)+1 {
-				return m, tea.Quit
+
+				algo := models.Algor{Created: time.Now().Unix(), State: "waiting"}
+				algo.Owner = m.user
+				algo.Name = m.inputs[0].Value()
+				algo.BaseAsset = m.inputs[1].Value()
+				algo.QuoteAsset = m.inputs[2].Value()
+				algo.Buycode = m.textarea.Value()
+
+				err := models.InsertAlgo(algo)
+				if err != nil {
+					panic(err)
+				}
+
+				return main, tea.Quit
 			}
 		}
 	}
@@ -141,7 +147,7 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Handle character input and blinking
 	cmd := m.updateInputs(msg)
 
-	return m, cmd
+	return main, cmd
 }
 
 func (m *createalgoModel) updateInputs(msg tea.Msg) tea.Cmd {
@@ -177,10 +183,6 @@ func (m createalgoModel) View() string {
 		button = &focusedButton
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
-
-	b.WriteString(helpStyle.Render("cursor mode is "))
-	b.WriteString(cursorModeHelpStyle.Render(m.cursorMode.String()))
-	b.WriteString(helpStyle.Render(" (ctrl+r to change style)"))
 
 	return b.String()
 }
