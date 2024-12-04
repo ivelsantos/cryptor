@@ -7,6 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ivelsantos/cryptor/models"
+	"github.com/ivelsantos/cryptor/tui/algosui"
 )
 
 func Tui() {
@@ -20,7 +21,6 @@ func Tui() {
 
 type model struct {
 	users  []string
-	user   string
 	cursor int
 }
 
@@ -59,7 +59,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor++
 			}
 		case "enter", " ":
-			m.user = m.users[m.cursor]
+			newModel := algosui.AlgosNew(m.users[m.cursor], m)
+			return newModel, nil
 		}
 	}
 	return m, nil

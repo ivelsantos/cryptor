@@ -10,14 +10,15 @@ import (
 	"github.com/ivelsantos/cryptor/models"
 )
 
-type algosModel struct {
-	user  string
-	table table.Model
+type model struct {
+	user          string
+	table         table.Model
+	previousModel tea.Model
 }
 
 type algosMsg table.Model
 
-func algosNew(user string) tea.Model {
+func AlgosNew(user string, previousModel tea.Model) model {
 	algos, err := models.GetAlgos(user)
 	if err != nil {
 		log.Fatal(err)
@@ -48,37 +49,33 @@ func algosNew(user string) tea.Model {
 		table.WithHeight(len(algos)+1),
 	)
 
-	return algosModel{user: user, table: t}
+	return model{user: user, table: t, previousModel: previousModel}
 }
 
-func (m algosModel) Init() tea.Cmd {
-	return m.updateAlgosList()
+func (m model) Init() tea.Cmd {
+	return nil
 }
 
-func (m algosModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEsc:
-			return main.popModel(), nil
+			return m.previousModel, nil
 		case tea.KeyCtrlN:
-			return main.insertModel(createalgoNew(m.user)), nil
+			//TODO
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		}
-	case algosMsg:
-		m.table = table.Model(msg)
-		return m, nil
 	}
-
 	return m, nil
 }
 
-func (m algosModel) View() string {
+func (m model) View() string {
 	return m.table.View()
 }
 
-func (m *algosModel) updateAlgosList() tea.Cmd {
+func (m *model) updateAlgosList() tea.Cmd {
 	return func() tea.Msg {
 		time.Sleep(10 * time.Second)
 		algos, err := models.GetAlgos(m.user)
