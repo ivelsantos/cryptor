@@ -2,9 +2,11 @@ package tui
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ivelsantos/cryptor/models"
 )
 
 func Tui() {
@@ -16,49 +18,64 @@ func Tui() {
 	}
 }
 
-type mainModel struct {
-	models []tea.Model
+type model struct {
+	users  []string
+	user   string
+	cursor int
 }
 
-var main mainModel
-
-func initialModel() mainModel {
-	models := make([]tea.Model, 0, 5)
-	models = append(models, loginNew())
-	main.models = models
-	return main
-}
-
-func (m *mainModel) popModel() tea.Model {
-	if len(m.models) > 1 {
-		m.models = m.models[:len(m.models)-1]
+func initialModel() model {
+	users := make([]string, 0, 5)
+	accounts, err := models.GetAccounts()
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	for _, account := range accounts {
+		users = append(users, account.Name)
+	}
+
+	m := model{users: users}
+
 	return m
 }
 
-func insertModel(model tea.Model) tea.Model {
-	main.models = append(main.models, model)
-	return main
+func (m model) Init() tea.Cmd {
+	return nil
 }
 
-func (m mainModel) Init() tea.Cmd {
-	return m.models[len(m.models)-1].Init()
-}
-
-func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyCtrlC:
+		switch msg.String() {
+		case "ctrl+c":
 			return m, tea.Quit
-		case tea.KeyEsc:
-			return m.popModel(), nil
+		case "up", "k":
+			if m.cursor > 0 {
+				m.cursor--
+			}
+		case "down", "j":
+			if m.cursor < len(m.users)-1 {
+				m.cursor++
+			}
+		case "enter", " ":
+			m.user = m.users[m.cursor]
 		}
 	}
-
-	return m.models[len(m.models)-1].Update(msg)
+	return m, nil
 }
 
-func (m mainModel) View() string {
-	return m.models[len(m.models)-1].View()
+func (m model) View() string {
+	s := "\nChoose the user:\n\n"
+
+	for i, choice := range m.users {
+		cursor := " "
+		if m.cursor == i {
+			cursor = ">"
+		}
+		s += fmt.Sprintf("%s %s\n", cursor, choice)
+	}
+
+	s += "\nPress ctrl+c to quit.\n"
+	return s
 }
