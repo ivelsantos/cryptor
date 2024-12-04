@@ -25,18 +25,20 @@ var (
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
-type createalgoModel struct {
-	focusIndex int
-	inputs     []textinput.Model
-	cursorMode cursor.Mode
-	textarea   textarea.Model
-	user       string
+type model struct {
+	focusIndex    int
+	inputs        []textinput.Model
+	cursorMode    cursor.Mode
+	textarea      textarea.Model
+	user          string
+	previousModel tea.Model
 }
 
-func createalgoNew(user string) tea.Model {
-	m := createalgoModel{
-		inputs: make([]textinput.Model, 3),
-		user:   user,
+func CreatealgoNew(user string, previousModel tea.Model) tea.Model {
+	m := model{
+		inputs:        make([]textinput.Model, 3),
+		user:          user,
+		previousModel: previousModel,
 	}
 
 	var t textinput.Model
@@ -73,11 +75,11 @@ func createalgoNew(user string) tea.Model {
 	return m
 }
 
-func (m createalgoModel) Init() tea.Cmd {
+func (m model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -85,8 +87,7 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "esc":
-			newMain := main.popModel()
-			return newMain, nil
+			return m.previousModel, nil
 
 			// Set focus to next input
 		case "tab", "shift+tab", "up", "down":
@@ -143,8 +144,7 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					panic(err)
 				}
 
-				newMain := main.popModel()
-				return newMain, nil
+				return m.previousModel, nil
 			}
 		}
 	}
@@ -155,7 +155,7 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *createalgoModel) updateInputs(msg tea.Msg) tea.Cmd {
+func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
 	// Only text inputs with Focus() set will respond, so it's safe to simply
@@ -171,7 +171,7 @@ func (m *createalgoModel) updateInputs(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m createalgoModel) View() string {
+func (m model) View() string {
 	var b strings.Builder
 
 	for i := range m.inputs {

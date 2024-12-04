@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ivelsantos/cryptor/models"
+	"github.com/ivelsantos/cryptor/tui/createalgoui"
 )
 
 type model struct {
@@ -63,7 +64,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc:
 			return m.previousModel, nil
 		case tea.KeyCtrlN:
-			//TODO
+			return createalgoui.CreatealgoNew(m.user, m), nil
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		}
