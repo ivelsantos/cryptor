@@ -66,3 +66,36 @@ func (m algosModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m algosModel) View() string {
 	return m.table.View()
 }
+
+func (m *algosModel) updateAlgosList() {
+	algos, err := models.GetAlgos(m.user)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	columns := []table.Column{
+		{Title: "Name", Width: 15},
+		{Title: "Ticket", Width: 10},
+		{Title: "Status", Width: 10},
+		{Title: "Performance", Width: 15},
+	}
+
+	rows := make([]table.Row, 0, 10)
+
+	for _, algo := range algos {
+		stats, err := models.GetStatsById2(algo.Id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		stats_string := strconv.FormatFloat(stats.AvgReturnPerMonth*100, 'f', 4, 64) + " / mo"
+		rows = append(rows, table.Row{algo.Name, algo.BaseAsset + algo.QuoteAsset, algo.State, stats_string})
+	}
+
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(len(algos)+1),
+	)
+	m.table = t
+}

@@ -81,8 +81,12 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "esc":
-			return main, tea.Quit
+		case "ctrl+c":
+			return m, tea.Quit
+
+		case "esc":
+			newMain := main.popModel()
+			return newMain, nil
 
 			// Set focus to next input
 		case "tab", "shift+tab", "up", "down":
@@ -122,7 +126,7 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.textarea.Blur()
 			}
 
-			return main, tea.Batch(cmds...)
+			return m, tea.Batch(cmds...)
 		case "enter":
 			s := msg.String()
 			if s == "enter" && m.focusIndex == len(m.inputs)+1 {
@@ -139,7 +143,8 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					panic(err)
 				}
 
-				return main, tea.Quit
+				newMain := main.popModel()
+				return newMain, nil
 			}
 		}
 	}
@@ -147,7 +152,7 @@ func (m createalgoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Handle character input and blinking
 	cmd := m.updateInputs(msg)
 
-	return main, cmd
+	return m, cmd
 }
 
 func (m *createalgoModel) updateInputs(msg tea.Msg) tea.Cmd {

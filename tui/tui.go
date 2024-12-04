@@ -29,11 +29,11 @@ func initialModel() mainModel {
 	return main
 }
 
-func popModel() tea.Model {
-	if len(main.models) > 1 {
-		main.models = main.models[:len(main.models)-1]
+func (m *mainModel) popModel() tea.Model {
+	if len(m.models) > 1 {
+		m.models = m.models[:len(m.models)-1]
 	}
-	return main
+	return m
 }
 
 func insertModel(model tea.Model) tea.Model {
@@ -43,7 +43,6 @@ func insertModel(model tea.Model) tea.Model {
 
 func (m mainModel) Init() tea.Cmd {
 	return m.models[len(m.models)-1].Init()
-	// return nil
 }
 
 func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -53,7 +52,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		case tea.KeyEsc:
-			return popModel(), nil
+			return m.popModel(), nil
 		}
 	}
 
