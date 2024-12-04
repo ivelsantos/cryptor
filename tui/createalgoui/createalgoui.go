@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -25,10 +24,15 @@ var (
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
+type CreateAlgoMsg int
+
+const (
+	UpdateAlgos CreateAlgoMsg = iota
+)
+
 type model struct {
 	focusIndex    int
 	inputs        []textinput.Model
-	cursorMode    cursor.Mode
 	textarea      textarea.Model
 	user          string
 	previousModel tea.Model
@@ -144,7 +148,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					panic(err)
 				}
 
-				return m.previousModel, nil
+				prevModel, cmd := m.previousModel.Update(UpdateAlgos)
+				return prevModel, cmd
 			}
 		}
 	}
