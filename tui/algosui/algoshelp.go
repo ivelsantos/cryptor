@@ -8,13 +8,25 @@ import (
 	"github.com/ivelsantos/cryptor/models"
 )
 
+func (m *model) deleteAlgo(id int) {
+	err := models.DeleteAlgo(id, m.user)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (m *model) updateAlgosList() {
-	algos, err := models.GetAlgos(m.user)
+	m.table = getAlgosTable(m.user)
+}
+
+func getAlgosTable(user string) table.Model {
+	algos, err := models.GetAlgos(user)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	columns := []table.Column{
+		{Title: "Id", Width: 10},
 		{Title: "Name", Width: 15},
 		{Title: "Ticket", Width: 10},
 		{Title: "Status", Width: 10},
@@ -29,7 +41,8 @@ func (m *model) updateAlgosList() {
 			log.Fatal(err)
 		}
 		stats_string := strconv.FormatFloat(stats.AvgReturnPerMonth*100, 'f', 4, 64) + " / mo"
-		rows = append(rows, table.Row{algo.Name, algo.BaseAsset + algo.QuoteAsset, algo.State, stats_string})
+		id_string := strconv.Itoa(algo.Id)
+		rows = append(rows, table.Row{id_string, algo.Name, algo.BaseAsset + algo.QuoteAsset, algo.State, stats_string})
 	}
 
 	t := table.New(
@@ -38,5 +51,6 @@ func (m *model) updateAlgosList() {
 		table.WithFocused(true),
 		table.WithHeight(len(algos)+1),
 	)
-	m.table = t
+
+	return t
 }
