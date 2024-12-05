@@ -15,7 +15,7 @@ func main() {
 	}
 
 	go services.Services()
+	// go front.Front()
 	tui.Tui()
 
-	// front.Front()
 }

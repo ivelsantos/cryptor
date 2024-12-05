@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/tui/algosui"
+	"github.com/ivelsantos/cryptor/tui/createuser"
 )
 
 func Tui() {
@@ -61,6 +62,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter", " ":
 			newModel := algosui.AlgosNew(m.users[m.cursor], m)
 			return newModel, nil
+		case "ctrl+n":
+			newModel := createuser.CreateuserNew(m)
+			return newModel, nil
+		}
+	case createuser.CreateUserMsg:
+		if msg == createuser.UpdateUsers {
+			m.updateUsers()
+			return m, nil
 		}
 	}
 	return m, nil
@@ -79,4 +88,18 @@ func (m model) View() string {
 
 	s += "\nPress ctrl+c to quit.\n"
 	return s
+}
+
+func (m *model) updateUsers() {
+	users := make([]string, 0, 5)
+	accounts, err := models.GetAccounts()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, account := range accounts {
+		users = append(users, account.Name)
+	}
+
+	m.users = users
 }
