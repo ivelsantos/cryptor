@@ -26,7 +26,7 @@ func getAlgosTable(user string) table.Model {
 	}
 
 	columns := []table.Column{
-		{Title: "Id", Width: 10},
+		{Title: "Id", Width: 5},
 		{Title: "Name", Width: 15},
 		{Title: "Ticket", Width: 10},
 		{Title: "Status", Width: 10},

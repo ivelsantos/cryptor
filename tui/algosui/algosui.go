@@ -26,17 +26,22 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+
 	case tea.KeyMsg:
 		switch msg.Type {
+
 		case tea.KeyEsc:
 			return m.previousModel, nil
+
 		case tea.KeyCtrlN:
 			return createalgoui.CreatealgoNew(m.user, m), nil
+
+		case tea.KeyCtrlS:
+			id, _ := strconv.Atoi(m.table.SelectedRow()[0])
+			return stateChangeNew(id, m.table.Cursor(), m), nil
+
 		case tea.KeyCtrlD:
-			id, err := strconv.Atoi(m.table.SelectedRow()[0])
-			if err != nil {
-				panic(err)
-			}
+			id, _ := strconv.Atoi(m.table.SelectedRow()[0])
 			m.deleteAlgo(id)
 			n_rows := len(m.table.Rows())
 			index_row := m.table.Cursor()
@@ -50,9 +55,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			return m, nil
+
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		}
+
 	case createalgoui.CreateAlgoMsg:
 		if msg == createalgoui.UpdateAlgos {
 			m.updateAlgosList()
