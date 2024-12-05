@@ -49,7 +49,7 @@ func getAlgosTable(user string) table.Model {
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(len(algos)+1),
+		table.WithHeight(len(algos)+2),
 	)
 
 	return t
