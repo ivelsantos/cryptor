@@ -38,7 +38,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				panic(err)
 			}
 			m.deleteAlgo(id)
+			n_rows := len(m.table.Rows())
+			index_row := m.table.Cursor()
+
 			m.updateAlgosList()
+
+			if index_row != (n_rows - 1) {
+				m.table.SetCursor(index_row)
+			} else {
+				m.table.GotoBottom()
+			}
+
 			return m, nil
 		case tea.KeyCtrlC:
 			return m, tea.Quit
