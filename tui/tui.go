@@ -65,6 +65,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+n":
 			newModel := createuser.CreateuserNew(m)
 			return newModel, nil
+		case "ctrl+d":
+			n_users := len(m.users)
+			m.deleteUser(m.users[m.cursor])
+
+			m.updateUsers()
+
+			if m.cursor == (n_users - 1) {
+				m.cursor--
+			}
+			return m, nil
 		}
 	case createuser.CreateUserMsg:
 		if msg == createuser.UpdateUsers {
@@ -88,18 +98,4 @@ func (m model) View() string {
 
 	s += "\nPress ctrl+c to quit.\n"
 	return s
-}
-
-func (m *model) updateUsers() {
-	users := make([]string, 0, 5)
-	accounts, err := models.GetAccounts()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, account := range accounts {
-		users = append(users, account.Name)
-	}
-
-	m.users = users
 }

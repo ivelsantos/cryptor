@@ -79,3 +79,26 @@ func InsertAccount(account Account) error {
 
 	return nil
 }
+
+func DeleteUser(user string) error {
+	query := `
+		DELETE FROM accounts
+		WHERE name = ?
+		`
+
+	result, err := db.Exec(query, user)
+	if err != nil {
+		return fmt.Errorf("Failed to delete algo: %v", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve number of rows affected: %v", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("No rows found for user %s", user)
+	}
+
+	return nil
+}
