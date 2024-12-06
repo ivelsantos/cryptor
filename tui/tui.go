@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,7 +14,7 @@ import (
 
 func Tui() {
 
-	p := tea.NewProgram(initialModel())
+	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
@@ -109,7 +108,11 @@ func (m model) View() string {
 	}
 
 	helpView := m.help.View(m.keys)
-	height := 12 - strings.Count(s, "\n") - strings.Count(helpView, "\n")
+	// height := 9 - strings.Count(s, "\n") - strings.Count(helpView, "\n")
+	// if height < 0 {
+	// 	height = 0
+	// }
 
-	return s + strings.Repeat("\n", height) + helpView
+	// return s + strings.Repeat("\n", height) + helpView
+	return s + "\n\n\n" + helpView
 }
