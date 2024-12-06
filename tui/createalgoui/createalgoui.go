@@ -26,6 +26,7 @@ type model struct {
 	previousModel tea.Model
 	keys          keyMap
 	help          help.Model
+	errAlgo       bool
 }
 
 func CreatealgoNew(user string, previousModel tea.Model) tea.Model {
@@ -35,6 +36,7 @@ func CreatealgoNew(user string, previousModel tea.Model) tea.Model {
 		previousModel: previousModel,
 		keys:          keys,
 		help:          help.New(),
+		errAlgo:       false,
 	}
 
 	var t textinput.Model
@@ -76,6 +78,8 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.errAlgo = false
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -129,6 +133,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			s := msg.String()
 			if s == "enter" && m.focusIndex == len(m.inputs)+1 {
+				errCode := m.verifyAlgo()
+				if errCode != nil {
+					m.errAlgo = true
+					return m, nil
+				}
 
 				algo := models.Algor{Created: time.Now().Unix(), State: "waiting"}
 				algo.Owner = m.user
@@ -155,6 +164,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
+	// Inputs field
 	var b strings.Builder
 
 	for i := range m.inputs {
@@ -172,8 +182,13 @@ func (m model) View() string {
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
+	var errCode string
+	if m.errAlgo {
+		errCode = "Code contain errors!\n"
+	}
+
 	s := b.String()
 
 	helpView := m.help.View(m.keys)
-	return s + "\n\n\n" + helpView
+	return s + "\n\n\n" + errCode + helpView
 }

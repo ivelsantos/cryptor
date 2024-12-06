@@ -2,10 +2,13 @@ package createalgoui
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ivelsantos/cryptor/lang"
+	"github.com/ivelsantos/cryptor/models"
 )
 
 type keyMap struct {
@@ -81,4 +84,21 @@ func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
+}
+
+func (m *model) verifyAlgo() error {
+	algo := models.Algor{Created: time.Now().Unix(), State: "verification"}
+	algo.Owner = m.user
+	algo.Name = m.inputs[0].Value()
+	algo.BaseAsset = m.inputs[1].Value()
+	algo.QuoteAsset = m.inputs[2].Value()
+	algo.Buycode = m.textarea.Value()
+
+	optAlgo := lang.GlobalStore("Algo", algo)
+
+	_, err := lang.Parse("", []byte(algo.Buycode), optAlgo)
+	if err != nil {
+		return err
+	}
+	return nil
 }
