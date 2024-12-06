@@ -7,11 +7,8 @@ run: build
 build : template
 	@go build -o bin/cryptor
 
-template: css
+template: grammar
 	@templ generate
-
-css: grammar
-	@npm run build
 
 grammar: $(wildcard *.peg)
 	@pigeon -o lang/lang.go lang/lang.peg
