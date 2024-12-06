@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -32,12 +33,16 @@ type model struct {
 	focusIndex    int
 	inputs        []textinput.Model
 	previousModel tea.Model
+	keys          keyMap
+	help          help.Model
 }
 
 func CreateuserNew(previousModel tea.Model) tea.Model {
 	m := model{
 		inputs:        make([]textinput.Model, 5),
 		previousModel: previousModel,
+		keys:          keys,
+		help:          help.New(),
 	}
 
 	var t textinput.Model
@@ -86,6 +91,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "esc":
 			return m.previousModel, nil
+
+		case "ctrl+h":
+			m.help.ShowAll = !m.help.ShowAll
 
 			// Set focus to next input
 		case "tab", "shift+tab", "up", "down":
@@ -175,5 +183,7 @@ func (m model) View() string {
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
-	return b.String()
+	s := b.String()
+	helpView := m.help.View(m.keys)
+	return s + "\n\n\n" + helpView
 }
