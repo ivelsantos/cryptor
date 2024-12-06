@@ -5,23 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ivelsantos/cryptor/models"
-)
-
-var (
-	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	cursorStyle         = focusedStyle
-	noStyle             = lipgloss.NewStyle()
-	helpStyle           = blurredStyle
-	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
-
-	focusedButton = focusedStyle.Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
 type CreateAlgoMsg int
@@ -36,6 +24,8 @@ type model struct {
 	textarea      textarea.Model
 	user          string
 	previousModel tea.Model
+	keys          keyMap
+	help          help.Model
 }
 
 func CreatealgoNew(user string, previousModel tea.Model) tea.Model {
@@ -43,6 +33,8 @@ func CreatealgoNew(user string, previousModel tea.Model) tea.Model {
 		inputs:        make([]textinput.Model, 3),
 		user:          user,
 		previousModel: previousModel,
+		keys:          keys,
+		help:          help.New(),
 	}
 
 	var t textinput.Model
@@ -94,6 +86,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.previousModel, nil
 
 			// Set focus to next input
+		case "ctrl+h":
+			m.help.ShowAll = !m.help.ShowAll
 		case "tab", "shift+tab", "up", "down":
 			s := msg.String()
 
@@ -160,22 +154,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
-	cmds := make([]tea.Cmd, len(m.inputs))
-
-	// Only text inputs with Focus() set will respond, so it's safe to simply
-	// update all of them here without any further logic.
-	for i := range m.inputs {
-		m.inputs[i], cmds[i] = m.inputs[i].Update(msg)
-	}
-
-	textareaNewModel, cmd := m.textarea.Update(msg)
-	m.textarea = textareaNewModel
-	cmds = append(cmds, cmd)
-
-	return tea.Batch(cmds...)
-}
-
 func (m model) View() string {
 	var b strings.Builder
 
@@ -194,5 +172,8 @@ func (m model) View() string {
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
-	return b.String()
+	s := b.String()
+
+	helpView := m.help.View(m.keys)
+	return s + "\n\n\n" + helpView
 }
