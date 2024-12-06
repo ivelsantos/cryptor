@@ -108,11 +108,5 @@ func (m model) View() string {
 	}
 
 	helpView := m.help.View(m.keys)
-	// height := 9 - strings.Count(s, "\n") - strings.Count(helpView, "\n")
-	// if height < 0 {
-	// 	height = 0
-	// }
-
-	// return s + strings.Repeat("\n", height) + helpView
 	return s + "\n\n\n" + helpView
 }
