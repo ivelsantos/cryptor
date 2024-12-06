@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "github.com/ivelsantos/cryptor/front"
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services"
 	"github.com/ivelsantos/cryptor/tui"
@@ -15,7 +14,6 @@ func main() {
 	}
 
 	go services.Services()
-	// go front.Front()
 	tui.Tui()
 
 }
