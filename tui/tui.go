@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
+	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/tui/algosui"
@@ -23,6 +25,8 @@ func Tui() {
 type model struct {
 	users  []string
 	cursor int
+	keys   keyMap
+	help   help.Model
 }
 
 func initialModel() model {
@@ -36,7 +40,11 @@ func initialModel() model {
 		users = append(users, account.Name)
 	}
 
-	m := model{users: users}
+	m := model{
+		users: users,
+		keys:  keys,
+		help:  help.New(),
+	}
 
 	return m
 }
@@ -47,6 +55,8 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.help.Width = msg.Width
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
@@ -59,7 +69,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.cursor < len(m.users)-1 {
 				m.cursor++
 			}
-		case "enter", " ":
+		case "?":
+			m.help.ShowAll = !m.help.ShowAll
+		case "enter":
 			newModel := algosui.AlgosNew(m.users[m.cursor], m)
 			return newModel, nil
 		case "ctrl+n":
@@ -96,6 +108,8 @@ func (m model) View() string {
 		s += fmt.Sprintf("%s %s\n", cursor, choice)
 	}
 
-	s += "\nPress ctrl+c to quit.\n"
-	return s
+	helpView := m.help.View(m.keys)
+	height := 12 - strings.Count(s, "\n") - strings.Count(helpView, "\n")
+
+	return s + strings.Repeat("\n", height) + helpView
 }
