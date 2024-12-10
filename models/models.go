@@ -201,6 +201,14 @@ func createAlgoStatsView(db *sql.DB) error {
 		       )
 		WHERE buytimelength IS NOT NULL
 		AND return IS NOT NULL
+		UNION ALL
+	    SELECT botid,
+	           return,
+	           selltime,
+	           buytimelength,
+	           selltimelength,
+	           tradetimelength
+	      FROM testing_calc
 		),
 
 		bot_stats AS (
