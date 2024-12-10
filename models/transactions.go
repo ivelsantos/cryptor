@@ -297,7 +297,7 @@ func GetAllAlgoStatsLive() ([]AlgoStats, error) {
 	for rows.Next() {
 		var algo AlgoStats
 
-		err := rows.Scan(&algo.Botid, &algo.TotalReturn, &algo.AvgReturnPerTrade, &algo.AvgReturnPerMonth, &algo.SucessRate, &algo.MaxDrawdown, &algo.AvgTradeTime)
+		err := rows.Scan(&algo.Botid, &algo.TotalReturn, &algo.AvgReturnPerTrade, &algo.AvgReturnPerDay, &algo.SucessRate, &algo.MaxDrawdown, &algo.AvgTradeTime)
 		if err != nil {
 			return nil, err
 		}
@@ -319,5 +319,5 @@ func GetStatsByIdLive(stats []AlgoStats, botid int) AlgoStats {
 		}
 	}
 
-	return AlgoStats{AvgReturnPerMonth: 0}
+	return AlgoStats{AvgReturnPerDay: 0}
 }

@@ -94,7 +94,7 @@ func getAlgosTable(user string) table.Model {
 		if err != nil {
 			log.Fatal(err)
 		}
-		stats_string := strconv.FormatFloat(stats.AvgReturnPerMonth*100, 'f', 4, 64) + " / mo"
+		stats_string := strconv.FormatFloat(stats.AvgReturnPerDay*100, 'f', 2, 64) + "% / day"
 		id_string := strconv.Itoa(algo.Id)
 		rows = append(rows, table.Row{id_string, algo.Name, algo.BaseAsset + algo.QuoteAsset, algo.State, stats_string})
 	}

@@ -33,7 +33,7 @@ type AlgoStats struct {
 	Botid             int
 	TotalReturn       float64
 	AvgReturnPerTrade float64
-	AvgReturnPerMonth float64
+	AvgReturnPerDay   float64
 	SucessRate        float64
 	MaxDrawdown       float64
 	AvgTradeTime      int
@@ -258,7 +258,7 @@ func GetAllAlgoStats() ([]AlgoStats, error) {
 	for rows.Next() {
 		var algo AlgoStats
 
-		err := rows.Scan(&algo.Botid, &algo.TotalReturn, &algo.AvgReturnPerTrade, &algo.AvgReturnPerMonth, &algo.SucessRate, &algo.MaxDrawdown, &algo.AvgTradeTime)
+		err := rows.Scan(&algo.Botid, &algo.TotalReturn, &algo.AvgReturnPerTrade, &algo.AvgReturnPerDay, &algo.SucessRate, &algo.MaxDrawdown, &algo.AvgTradeTime)
 		if err != nil {
 			return nil, err
 		}
@@ -280,7 +280,7 @@ func GetStatsById(stats []AlgoStats, botid int) AlgoStats {
 		}
 	}
 
-	return AlgoStats{AvgReturnPerMonth: 0}
+	return AlgoStats{AvgReturnPerDay: 0}
 }
 
 func GetStatsById2(botid int) (AlgoStats, error) {
@@ -292,10 +292,10 @@ func GetStatsById2(botid int) (AlgoStats, error) {
 
 	row := db.QueryRow(query, botid)
 
-	err := row.Scan(&stat.Botid, &stat.TotalReturn, &stat.AvgReturnPerTrade, &stat.AvgReturnPerMonth, &stat.SucessRate, &stat.MaxDrawdown, &stat.AvgTradeTime)
+	err := row.Scan(&stat.Botid, &stat.TotalReturn, &stat.AvgReturnPerTrade, &stat.AvgReturnPerDay, &stat.SucessRate, &stat.MaxDrawdown, &stat.AvgTradeTime)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return AlgoStats{AvgReturnPerMonth: 0}, nil
+			return AlgoStats{AvgReturnPerDay: 0}, nil
 		}
 		return stat, fmt.Errorf("Failed to retrieve stats: %v", err)
 	}
