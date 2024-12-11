@@ -72,7 +72,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.help.ShowAll = !m.help.ShowAll
 		case "enter":
 			newModel := algosui.AlgosNew(m.users[m.cursor], m)
-			return newModel, nil
+			return newModel, algosui.DoRefresh
 		case "ctrl+n":
 			newModel := createuser.CreateuserNew(m)
 			return newModel, nil

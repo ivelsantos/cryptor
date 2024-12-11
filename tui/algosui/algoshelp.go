@@ -3,9 +3,11 @@ package algosui
 import (
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ivelsantos/cryptor/models"
 )
 
@@ -65,6 +67,13 @@ var keys = keyMap{
 		key.WithKeys("esc"),
 		key.WithHelp("esc", "previous"),
 	),
+}
+
+type refreshMsg struct{}
+
+func DoRefresh() tea.Msg {
+	time.Sleep(5 * time.Second)
+	return refreshMsg{}
 }
 
 func (m *model) deleteAlgo(id int) {

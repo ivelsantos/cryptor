@@ -36,9 +36,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 
+	case refreshMsg:
+		index_row := m.table.Cursor()
+
+		m.updateAlgosList()
+
+		m.table.SetCursor(index_row)
+
+		return m, DoRefresh
 	case tea.KeyMsg:
 		switch msg.String() {
-
 		case "esc":
 			return m.previousModel, nil
 
