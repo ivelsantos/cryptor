@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ivelsantos/cryptor/lang"
 	"github.com/ivelsantos/cryptor/models"
+	"github.com/ivelsantos/cryptor/services/crypt/functions"
 )
 
 type keyMap struct {
@@ -84,6 +85,38 @@ func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
+}
+
+func (m *model) verifySymbol() error {
+	sym := m.inputs[1].Value() + m.inputs[2].Value()
+
+	algos, err := models.GetAllAlgos()
+	if err != nil {
+		return err
+	}
+	for _, algo := range algos {
+		if (algo.BaseAsset + algo.QuoteAsset) == sym {
+			return nil
+		}
+	}
+
+	account, err := models.GetAccountByName(m.user)
+	if err != nil {
+		return err
+	}
+
+	symbols, err := functions.GetSymbols(account.ApiKey, account.SecretKey)
+	if err != nil {
+		return err
+	}
+
+	for _, symbol := range symbols {
+		if symbol.Symbol == sym {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("Symbol does not exists\n")
 }
 
 func (m *model) verifyAlgo() error {

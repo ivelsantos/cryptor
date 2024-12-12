@@ -27,6 +27,7 @@ type model struct {
 	keys          keyMap
 	help          help.Model
 	errAlgo       bool
+	errSymbol     bool
 }
 
 func CreatealgoNew(user string, previousModel tea.Model) tea.Model {
@@ -37,6 +38,7 @@ func CreatealgoNew(user string, previousModel tea.Model) tea.Model {
 		keys:          keys,
 		help:          help.New(),
 		errAlgo:       false,
+		errSymbol:     false,
 	}
 
 	var t textinput.Model
@@ -78,6 +80,7 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.errSymbol = false
 	m.errAlgo = false
 
 	switch msg := msg.(type) {
@@ -133,7 +136,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			s := msg.String()
 			if s == "enter" && m.focusIndex == len(m.inputs)+1 {
-				errCode := m.verifyAlgo()
+
+				errCode := m.verifySymbol()
+				if errCode != nil {
+					m.errSymbol = true
+					return m, nil
+				}
+
+				errCode = m.verifyAlgo()
 				if errCode != nil {
 					m.errAlgo = true
 					return m, nil
@@ -183,7 +193,9 @@ func (m model) View() string {
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
 	var errCode string
-	if m.errAlgo {
+	if m.errSymbol {
+		errCode = "Symbol does not exists!\n"
+	} else if m.errAlgo {
 		errCode = "Code contain errors!\n"
 	}
 
