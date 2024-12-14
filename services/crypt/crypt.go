@@ -24,7 +24,7 @@ func GetFuncValue(algo models.Algor, funcName string, args any) (float64, error)
 
 func GetCryptValue(algo models.Algor, key string) (float64, error) {
 	switch key {
-	case "Price":
+	case "@Price":
 		price, err := values.GetPrice(algo.BaseAsset + algo.QuoteAsset)
 		if err != nil {
 			return 0, err

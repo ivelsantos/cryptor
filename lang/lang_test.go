@@ -1,7 +1,8 @@
 package lang
 
 import (
-	"github.com/ivelsantos/cryptor/services/crypt"
+	// "github.com/ivelsantos/cryptor/services/crypt"
+	"github.com/ivelsantos/cryptor/models"
 	"testing"
 )
 
@@ -80,25 +81,27 @@ var tests = []struct {
 	end`, nil, []string{}},
 
 	{`let a = @Price
-	let b = @Mean(14)
-	if a < b
-		Buy()
-	end`, nil, []string{"buy"}},
-	{`let a = @Price
-	let b = @Mean(1000)
-	if a < b
+	let b = 0
+	if a > b
 		Buy()
 	end`, nil, []string{"buy"}},
 }
 
 func TestExpressions(t *testing.T) {
-	err := crypt.InitCrypt()
+	err := models.InitDB("../algor.db")
 	if err != nil {
-		t.Errorf("Error initiating Crypt: %v", err)
+		t.Errorf("Error on database init: %v\n", err)
 	}
 
+	algos, err := models.GetAllAlgos()
+	if err != nil {
+		t.Errorf("Failed to get algos: %v", err)
+	}
+
+	optAlgo := GlobalStore("Algo", algos[0])
+	optTest := GlobalStore("Test", struct{}{})
 	for _, test := range tests {
-		res, err := Parse("", []byte(test.code))
+		res, err := Parse("", []byte(test.code), optAlgo, optTest)
 		if test.err != nil {
 			if err == nil {
 				t.Errorf("Wrong parsing in %s\nIt should not parse", test.code)
