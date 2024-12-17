@@ -91,12 +91,17 @@ var tests = []struct {
 	if a > b
 		Buy()
 	end`, nil, []string{"buy"}},
-	{`let a = @Max(window_size = 14, lag = 3)
+	{`let a = @Max(window_size = 140, lag = 3)
 	let b = 0
 	if a > b
 		Buy()
 	end`, nil, []string{"buy"}},
-	{`let a = @Max(window_size = 140, lag = 3)
+	{`let a = @Min(window_size = 7)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = @Min(window_size = 7, lag = 4)
 	let b = 0
 	if a > b
 		Buy()
