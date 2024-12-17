@@ -2,23 +2,35 @@ package crypt
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services/crypt/values"
 )
 
-func GetFuncValue(algo models.Algor, funcName string, args any) (float64, error) {
-	argsSlice := args.([]any)
+func GetFuncValue(algo models.Algor, funcName string, args string) (float64, error) {
+	argsSlice := strings.Split(args, ",")
+	argsSlice[len(argsSlice)-1] = strings.ReplaceAll(argsSlice[len(argsSlice)-1], ")", "")
+	arguments := make(map[string]string)
+	for _, arg := range argsSlice {
+		sls := strings.Split(arg, "=")
+		if len(sls) != 2 {
+			return 0, fmt.Errorf("Wrong argument format: %s", arg)
+		}
+		arguments[strings.Trim(sls[0], " ")] = strings.Trim(sls[1], " ")
+	}
+
 	switch funcName {
 
-	case "@Mean":
-		val, err := GetCloseMean(algo, argsSlice)
+	case "@Max":
+		val, err := GetMaxValue(algo, arguments)
 		if err != nil {
 			return 0, err
 		}
 		return val, nil
 
 	default:
-		return 0, fmt.Errorf("Function %s does not exists", "@"+funcName)
+		return 0, fmt.Errorf("Function %s does not exists", funcName)
 	}
 }
 

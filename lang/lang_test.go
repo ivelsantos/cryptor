@@ -85,6 +85,22 @@ var tests = []struct {
 	if a > b
 		Buy()
 	end`, nil, []string{"buy"}},
+
+	{`let a = @Max(window_size = 14)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = @Max(window_size = 14, lag = 3)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = @Max(window_size = 140, lag = 3)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
 }
 
 func TestExpressions(t *testing.T) {
