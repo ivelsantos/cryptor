@@ -91,7 +91,7 @@ var tests = []struct {
 	if a > b
 		Buy()
 	end`, nil, []string{"buy"}},
-	{`let a = @Max(window_size = 140, lag = 3)
+	{`let a = @Max(window_size = 140, lag = 0)
 	let b = 0
 	if a > b
 		Buy()
@@ -105,6 +105,35 @@ var tests = []struct {
 	let b = 0
 	if a > b
 		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = @Min(window_size = 7, lag = 0)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = @Max(window_size = 1, lag = 3)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
+
+	{`let a = @Mean(window_size = 7)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = @Mean(window_size = 0)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{}},
+	{`let a = @Mean(window_size = 100)
+	let b = @Min(window_size = 100)
+	let c = @Max(window_size = 100)
+	if a > b
+		if a < c
+			Buy()
+		end
 	end`, nil, []string{"buy"}},
 }
 
