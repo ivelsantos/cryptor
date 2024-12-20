@@ -43,6 +43,13 @@ func GetFuncValue(algo models.Algor, funcName string, args string) (float64, err
 		}
 		return val, nil
 
+	case "@Median":
+		val, err := GetMedianValue(algo, arguments)
+		if err != nil {
+			return 0, err
+		}
+		return val, nil
+
 	default:
 		return 0, fmt.Errorf("Function %s does not exists", funcName)
 	}

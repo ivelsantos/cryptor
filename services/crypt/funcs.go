@@ -2,6 +2,7 @@ package crypt
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"time"
 
@@ -11,96 +12,90 @@ import (
 )
 
 func GetMaxValue(algo models.Algor, args map[string]string) (float64, error) {
-	klines, err := gettingKlines(algo, args)
+	values, err := gettingKlines(algo, args)
 	if err != nil {
 		return 0, err
 	}
-	if len(klines) < 1 {
+	if len(values) < 1 {
 		return 0, nil
 	}
 
-	var maxvalue float64 = 0
-	for _, kline := range klines {
-		v, err := strconv.ParseFloat(kline.Close, 64)
-		if err != nil {
-			return 0, err
-		}
-		if v > maxvalue {
-			maxvalue = v
-		}
-	}
-
-	return maxvalue, nil
+	return slices.Max(values), nil
 }
 
 func GetMinValue(algo models.Algor, args map[string]string) (float64, error) {
-	klines, err := gettingKlines(algo, args)
+	values, err := gettingKlines(algo, args)
 	if err != nil {
 		return 0, err
 	}
-	if len(klines) < 1 {
+	if len(values) < 1 {
 		return 0, nil
 	}
 
-	var minvalue float64
-	minvalue, err = strconv.ParseFloat(klines[0].Close, 64)
-	if err != nil {
-		return 0, err
-	}
-	for _, kline := range klines {
-		v, err := strconv.ParseFloat(kline.Close, 64)
-		if err != nil {
-			return 0, err
-		}
-		if v < minvalue {
-			minvalue = v
-		}
-	}
-
-	return minvalue, nil
+	return slices.Min(values), nil
 }
 
 func GetMeanValue(algo models.Algor, args map[string]string) (float64, error) {
-	klines, err := gettingKlines(algo, args)
+	values, err := gettingKlines(algo, args)
 	if err != nil {
 		return 0, err
 	}
-	if len(klines) < 1 {
+	if len(values) < 1 {
 		return 0, nil
 	}
 
-	var sum float64 = 0
-	for _, kline := range klines {
-		v, err := strconv.ParseFloat(kline.Close, 64)
-		if err != nil {
-			return 0, err
-		}
-		sum += v
+	var sum float64
+	for _, value := range values {
+		sum += value
 	}
 
-	meanValue := sum / float64(len(klines))
+	meanValue := sum / float64(len(values))
 	return meanValue, nil
 }
 
-func gettingKlines(algo models.Algor, args map[string]string) ([]binance.Kline, error) {
+func GetMedianValue(algo models.Algor, args map[string]string) (float64, error) {
+	values, err := gettingKlines(algo, args)
+	if err != nil {
+		return 0, err
+	}
+	if len(values) < 1 {
+		return 0, nil
+	}
+
+	slices.Sort(values)
+
+	n := len(values)
+	var result float64
+	if n%2 == 1 {
+		result = values[int(n/2)]
+	} else {
+		i := n / 2
+		result = (values[i-1] + values[i]) / 2
+	}
+
+	return result, nil
+}
+
+func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error) {
 	var klines []binance.Kline
+	var values []float64
 
 	account, err := models.GetAccountByName(algo.Owner)
 	if err != nil {
-		return klines, err
+		return values, err
 	}
 
 	// Parsing window argument
 	window, ok := args["window_size"]
 	if !ok {
-		return klines, fmt.Errorf("window argument not set")
+		return values, fmt.Errorf("window argument not set")
 	}
 	window_int, err := strconv.ParseInt(window, 0, 0)
 	if err != nil {
-		return klines, err
+		return values, err
 	}
 	if window_int == 0 {
-		return klines, nil
+		return values, nil
 	}
 
 	// Parsing the lag argument
@@ -113,10 +108,18 @@ func gettingKlines(algo models.Algor, args map[string]string) ([]binance.Kline, 
 	ticket := algo.BaseAsset + algo.QuoteAsset
 	klines, err = functions.GetKlines(ticket, account.ApiKey, account.SecretKey, int(window_int), lag)
 	if err != nil {
-		return klines, err
+		return values, err
 	}
 
-	return klines, nil
+	for _, kline := range klines {
+		v, err := strconv.ParseFloat(kline.Close, 64)
+		if err != nil {
+			return values, err
+		}
+		values = append(values, v)
+	}
+
+	return values, nil
 }
 
 func timeMsToSeconds(mili int64) time.Time {
