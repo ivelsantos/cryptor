@@ -35,6 +35,21 @@ func GetMinValue(algo models.Algor, args map[string]string) (float64, error) {
 	return slices.Min(values), nil
 }
 
+func GetRangeValue(algo models.Algor, args map[string]string) (float64, error) {
+	values, err := gettingKlines(algo, args)
+	if err != nil {
+		return 0, err
+	}
+	if len(values) < 1 {
+		return 0, nil
+	}
+
+	min := slices.Min(values)
+	max := slices.Max(values)
+
+	return max - min, nil
+}
+
 func GetMeanValue(algo models.Algor, args map[string]string) (float64, error) {
 	values, err := gettingKlines(algo, args)
 	if err != nil {

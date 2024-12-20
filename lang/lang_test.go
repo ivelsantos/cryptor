@@ -154,6 +154,25 @@ var tests = []struct {
 			Buy()
 		end
 	end`, nil, []string{"buy"}},
+
+	{`let a = @Range(window_size = 7)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = @Range(window_size = 14, lag = 3)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = @Range(window_size = 20)
+	let b = @Mean(window_size = 20)
+	let c = @Min(window_size = 20)
+	if a < b
+		if a < c
+			Buy()
+		end
+	end`, nil, []string{"buy"}},
 }
 
 func TestExpressions(t *testing.T) {
