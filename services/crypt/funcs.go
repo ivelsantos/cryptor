@@ -2,6 +2,7 @@ package crypt
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strconv"
 	"time"
@@ -89,6 +90,58 @@ func GetMedianValue(algo models.Algor, args map[string]string) (float64, error) 
 	}
 
 	return result, nil
+}
+
+func GetVarValue(algo models.Algor, args map[string]string) (float64, error) {
+	values, err := gettingKlines(algo, args)
+	if err != nil {
+		return 0, err
+	}
+	if len(values) < 1 {
+		return 0, nil
+	}
+
+	var sum float64
+	for _, value := range values {
+		sum += value
+	}
+	meanValue := sum / float64(len(values))
+
+	var varianceSum float64
+	for _, v := range values {
+		diff := v - meanValue
+		varianceSum += diff * diff
+	}
+	variance := varianceSum / float64(len(values))
+
+	return variance, nil
+}
+
+func GetStdValue(algo models.Algor, args map[string]string) (float64, error) {
+	values, err := gettingKlines(algo, args)
+	if err != nil {
+		return 0, err
+	}
+	if len(values) < 1 {
+		return 0, nil
+	}
+
+	var sum float64
+	for _, value := range values {
+		sum += value
+	}
+	meanValue := sum / float64(len(values))
+
+	var varianceSum float64
+	for _, v := range values {
+		diff := v - meanValue
+		varianceSum += diff * diff
+	}
+	variance := varianceSum / float64(len(values))
+
+	stdDev := math.Sqrt(variance)
+
+	return stdDev, nil
 }
 
 func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error) {
