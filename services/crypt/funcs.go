@@ -60,13 +60,7 @@ func GetMeanValue(algo models.Algor, args map[string]string) (float64, error) {
 		return 0, nil
 	}
 
-	var sum float64
-	for _, value := range values {
-		sum += value
-	}
-
-	meanValue := sum / float64(len(values))
-	return meanValue, nil
+	return calculateMean(values), nil
 }
 
 func GetMedianValue(algo models.Algor, args map[string]string) (float64, error) {
@@ -144,6 +138,37 @@ func GetStdValue(algo models.Algor, args map[string]string) (float64, error) {
 	return stdDev, nil
 }
 
+func GetEmaValue(algo models.Algor, args map[string]string) (float64, error) {
+	values, err := gettingKlines(algo, args)
+	if err != nil {
+		return 0, err
+	}
+	if len(values) < 1 {
+		return 0, nil
+	}
+
+	// Parsing smoothing argument
+	var smoothing float64 = 2
+	num, ok := args["smoothing"]
+	if ok {
+		smoothing, err = strconv.ParseFloat(num, 64)
+		return 0, fmt.Errorf("Invalid Smoothing Paremeter: %v", err)
+	}
+	alpha := smoothing / float64(len(values)+1)
+
+	// Initial smoothed value set to the first value
+	ema := values[0]
+
+	for i := range values {
+		if i == 0 {
+			continue
+		}
+		ema = (values[i] * alpha) + (ema * (1 - alpha))
+	}
+
+	return ema, nil
+}
+
 func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error) {
 	var klines []binance.Kline
 	var values []float64
@@ -188,6 +213,24 @@ func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error)
 	}
 
 	return values, nil
+}
+
+func calculateMean(values []float64) float64 {
+	if len(values) == 0 {
+		return 0
+	}
+
+	if len(values) == 1 {
+		return values[0]
+	}
+
+	var sum float64
+	for _, value := range values {
+		sum += value
+	}
+	meanValue := sum / float64(len(values))
+
+	return meanValue
 }
 
 func timeMsToSeconds(mili int64) time.Time {

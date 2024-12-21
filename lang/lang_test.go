@@ -195,6 +195,12 @@ var tests = []struct {
 	if a > b
 		Buy()
 	end`, nil, []string{"buy"}},
+
+	{`let a = @Ema(window_size = 25)
+	let b = 0
+	if a > b
+		Buy()
+	end`, nil, []string{"buy"}},
 }
 
 func TestExpressions(t *testing.T) {
