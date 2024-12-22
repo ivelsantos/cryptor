@@ -6,6 +6,37 @@ import (
 	"testing"
 )
 
+var tests_2 = []struct {
+	code string
+	err  error
+	exp  []string
+}{
+	{`if 45 < 46 and 2 == 2
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`if 45 < 46 and 2 != 2
+		Buy()
+	end`, nil, []string{}},
+	{`if 45 < 46 or 2 != 2
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`if 45 < 46 or 2 != 2
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`if 45 < 46 or 2 != 2 or 1 > 3
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`if 45 > 46 and 2 != 2 or 1 < 3
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`if 45 < 46 or 2 == 2 and 1 > 3
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`if (45 < 46 or 2 == 2) and 1 > 3
+		Buy()
+	end`, nil, []string{}},
+}
+
 var tests = []struct {
 	code string
 	err  error
@@ -216,7 +247,7 @@ func TestExpressions(t *testing.T) {
 
 	optAlgo := GlobalStore("Algo", algos[0])
 	optTest := GlobalStore("Test", struct{}{})
-	for _, test := range tests {
+	for _, test := range tests_2 {
 		res, err := Parse("", []byte(test.code), optAlgo, optTest)
 		if test.err != nil {
 			if err == nil {

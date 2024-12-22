@@ -20,6 +20,12 @@
 	}
 
 	var ops = map[string]func(any, any) any {
+		"or": func(l, r any) any {
+			return l.(bool) || r.(bool)
+		},
+		"and": func(l, r any) any {
+			return l.(bool) && r.(bool)
+		},
 		"!=": func(l, r any) any {
 			return l != r
 		},
@@ -108,8 +114,16 @@ Set <- "let" _ ident:Ident _ '=' _ expr:Expr _ {
 	return expr, nil
 }
 
-Expr <- first:Equality {
+Expr <- first:LogicOr {
 	return first, nil
+}
+
+LogicOr <- first:LogicAnd rest:( _ LogicOrOp _ LogicAnd )* _ {
+	return eval(first, rest), nil
+}
+
+LogicAnd <- first:Equality rest:( _ LogicAndOp _ Equality )* _ {
+	return eval(first, rest), nil
 }
 
 Equality <- first:Comparation rest:( _ EquOp _ Comparation )* _ {
@@ -141,6 +155,14 @@ Primary <- primary:( Number / Bool / Var / Function / Values ) {
 
 // OPERATORS //
 EquOp <- ( "!=" / "==" ) {
+	return string(c.text), nil
+}
+
+LogicAndOp <- ( "and" ) {
+	return string(c.text), nil
+}
+
+LogicOrOp <- ( "or" ) {
 	return string(c.text), nil
 }
 
