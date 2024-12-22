@@ -61,15 +61,19 @@ func CreateuserNew(previousModel tea.Model) tea.Model {
 		case 1:
 			t.Prompt = "Api key: "
 			t.Placeholder = "..."
+			t.CharLimit = 100
 		case 2:
 			t.Prompt = "Secret key: "
 			t.Placeholder = "..."
+			t.CharLimit = 100
 		case 3:
 			t.Prompt = "Testing api key: "
 			t.Placeholder = "..."
+			t.CharLimit = 100
 		case 4:
 			t.Prompt = "Testing secret key: "
 			t.Placeholder = "..."
+			t.CharLimit = 100
 		}
 
 		m.inputs[i] = t
