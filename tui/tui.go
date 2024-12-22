@@ -49,11 +49,14 @@ func initialModel() model {
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return m.verifyUsers()
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case nousersMsg:
+		newModel := createuser.CreateuserNew(m)
+		return newModel, nil
 	case tea.WindowSizeMsg:
 		m.help.Width = msg.Width
 	case tea.KeyMsg:

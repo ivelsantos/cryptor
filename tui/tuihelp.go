@@ -2,6 +2,7 @@ package tui
 
 import (
 	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ivelsantos/cryptor/models"
 )
 
@@ -14,6 +15,8 @@ type keyMap struct {
 	Help   key.Binding
 	Quit   key.Binding
 }
+
+type nousersMsg struct{}
 
 func (k keyMap) ShortHelp() []key.Binding {
 	return []key.Binding{k.Help, k.Quit}
@@ -76,4 +79,14 @@ func (m *model) updateUsers() {
 	}
 
 	m.users = users
+}
+
+func (m *model) verifyUsers() tea.Cmd {
+	if len(m.users) > 0 {
+		return nil
+	} else {
+		return func() tea.Msg {
+			return nousersMsg{}
+		}
+	}
 }
