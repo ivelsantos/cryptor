@@ -82,8 +82,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case createalgoui.CreateAlgoMsg:
 		if msg == createalgoui.UpdateAlgos {
+			index_row := m.table.Cursor()
 			m.updateAlgosList()
-			return m, nil
+			m.table.SetCursor(index_row)
+			return m, DoRefresh
 		}
 	}
 	m.table, cmd = m.table.Update(msg)

@@ -118,6 +118,11 @@ func DeleteAlgo(id int, owner string) error {
 		return fmt.Errorf("No rows found for id %d and owner %s", id, owner)
 	}
 
+	err = eraseTestingByBotid(id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

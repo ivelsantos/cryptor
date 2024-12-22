@@ -188,6 +188,37 @@ func GetUniqueAlgoTesting() ([]int, error) {
 	return botids, nil
 }
 
+func eraseTestingByBotid(botid int) error {
+	query := `
+		DELETE FROM testing
+		WHERE botid = ?`
+
+	_, err := db.Exec(query, botid)
+	if err != nil {
+		return fmt.Errorf("Failed to delete testing: %v", err)
+	}
+
+	query = `
+		DELETE FROM testing_calc
+		WHERE botid = ?`
+
+	_, err = db.Exec(query, botid)
+	if err != nil {
+		return fmt.Errorf("Failed to delete testing_calc: %v", err)
+	}
+
+	// rowsAffected, err := result.RowsAffected()
+	// if err != nil {
+	// 	return fmt.Errorf("Failed to retrieve number of rows affected: %v", err)
+	// }
+
+	// if rowsAffected == 0 {
+	// 	return fmt.Errorf("No rows found for botid", botid)
+	// }
+
+	return nil
+}
+
 func eraseTesting() error {
 	query := `
 		DELETE FROM testing
