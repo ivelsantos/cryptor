@@ -98,6 +98,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "tab", "shift+tab", "up", "down":
 			s := msg.String()
 
+			if m.focusIndex == len(m.inputs) {
+				if s == "up" || s == "down" {
+					// Handle character input and blinking
+					cmd := m.updateInputs(msg)
+
+					return m, cmd
+				}
+			}
+
 			// Cycle indexes
 			if s == "up" || s == "shift+tab" {
 				m.focusIndex--
