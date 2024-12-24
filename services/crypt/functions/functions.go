@@ -27,6 +27,7 @@ func GetKlines(symbol, apiKey, secretKey string, window int, lag int64) ([]binan
 		klineData = append(klineData, *lines[i])
 	}
 
+	// Getting the remaining data
 	last := klineData[len(klineData)-1].CloseTime
 
 	for last < now && len(lines) > 0 {
@@ -67,6 +68,7 @@ func GetKlinesByStartEnd(symbol, apiKey, secretKey string, window_size int) ([]b
 		klineData = append(klineData, *lines[i])
 	}
 
+	// Getting the remaining data
 	last := klineData[len(klineData)-1].CloseTime
 
 	for last < now && len(lines) > 0 {
