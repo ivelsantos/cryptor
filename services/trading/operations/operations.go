@@ -145,6 +145,8 @@ func Buy(algo models.Algor) (bool, error) {
 		return false, nil
 	case "verification":
 		return false, nil
+	case "backtesting":
+		return false, nil
 	default:
 		return false, fmt.Errorf("Unknown mode\n")
 	}
@@ -184,6 +186,8 @@ func Sell(algo models.Algor) error {
 	case "waiting", "live":
 		return nil
 	case "verification":
+		return nil
+	case "backtesting":
 		return nil
 	default:
 		return fmt.Errorf("Unknown mode\n")
@@ -323,6 +327,8 @@ func StopLoss(algo models.Algor, stop float64) error {
 		return nil
 	case "verification":
 		return nil
+	case "backtesting":
+		return nil
 	default:
 		return fmt.Errorf("Unknown mode\n")
 	}
@@ -454,6 +460,8 @@ func TakeProfit(algo models.Algor, take float64) error {
 	case "waiting":
 		return nil
 	case "verification":
+		return nil
+	case "backtesting":
 		return nil
 	default:
 		return fmt.Errorf("Unknown mode\n")
