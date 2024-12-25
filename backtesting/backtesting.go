@@ -9,7 +9,18 @@ import (
 	"github.com/ivelsantos/cryptor/models"
 )
 
+type AlgoBacktesting struct {
+	Id        []int
+	Botid     []int
+	Ticket    []string
+	Buyvalue  []float64
+	Buytime   []int64
+	Sellvalue []float64
+	Selltime  []int64
+}
+
 var Backtesting_Data []binance.Kline
+var Backtesting_Transactions AlgoBacktesting
 
 func BackTesting(algo models.Algor, window_size int) error {
 	var err error
@@ -18,6 +29,8 @@ func BackTesting(algo models.Algor, window_size int) error {
 	if err != nil {
 		return err
 	}
+
+	log.Printf("\tBacktesting with %v datapoints\n", len(Backtesting_Data))
 
 	for _, line := range Backtesting_Data {
 		optAlgo := lang.GlobalStore("Algo", algo)

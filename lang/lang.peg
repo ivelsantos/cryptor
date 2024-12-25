@@ -187,6 +187,12 @@ Values <- '@'[a-zA-Z]+[0-9a-zA-Z_]* {
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
+
+	_, back := c.globalStore["Back"]
+	if back {
+		return nil, nil
+	}
+
 	algo := algoAny.(models.Algor)
 
 	key := string(c.text)
@@ -202,6 +208,12 @@ Function <- '@'[a-zA-Z]+[0-9a-zA-Z_]* "(" _ rest:( ( Ident _ "=" _ Expr _ )? ( _
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
+
+	_, back := c.globalStore["Back"]
+	if back {
+		return nil, nil
+	}
+
 	algo := algoAny.(models.Algor)
 
 	funcName := strings.Split(string(c.text), "(")[0]
@@ -335,6 +347,11 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" _ {
 		return nil, nil
 	}
 
+	_, back := c.globalStore["Back"]
+	if back {
+		return nil, nil
+	}
+
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
@@ -359,6 +376,11 @@ TakeProfit <- "Take_profit(" _ res:Number _ ")" {
 		}
 		c.globalStore["result"] = []string{"sell"}
 		c.globalStore["sign"] = "OK"
+		return nil, nil
+	}
+
+	_, back := c.globalStore["Back"]
+	if back {
 		return nil, nil
 	}
 
