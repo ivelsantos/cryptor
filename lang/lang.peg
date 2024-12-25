@@ -188,15 +188,20 @@ Values <- '@'[a-zA-Z]+[0-9a-zA-Z_]* {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
 
-	_, back := c.globalStore["Back"]
+	timePoint, back := c.globalStore["Back"]
 	if back {
 		return nil, nil
+	}
+
+	backData, ok := c.globalStore["BackData"]
+	if !ok {
+		return nil, fmt.Errorf("Unable to retrieve BackData")
 	}
 
 	algo := algoAny.(models.Algor)
 
 	key := string(c.text)
-	val, err := crypt.GetCryptValue(algo, key)
+	val, err := crypt.GetCryptValue(algo, key, back, timePoint.(string), backData)
 	if err != nil {
 		return nil, err
 	}

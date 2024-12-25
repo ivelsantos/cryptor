@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/adshao/go-binance/v2"
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services/crypt/values"
 )
@@ -83,7 +84,9 @@ func GetFuncValue(algo models.Algor, funcName string, args string) (float64, err
 	}
 }
 
-func GetCryptValue(algo models.Algor, key string) (float64, error) {
+func GetCryptValue(algo models.Algor, key string, back bool, timePoint string, backData any) (float64, error) {
+	backData = backData.([]binance.Kline)
+
 	switch key {
 	case "@Price":
 		price, err := values.GetPrice(algo.BaseAsset + algo.QuoteAsset)

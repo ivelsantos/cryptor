@@ -1,8 +1,9 @@
-package backtesting
+package backtesting_test
 
 import (
 	"testing"
 
+	"github.com/ivelsantos/cryptor/backtesting"
 	"github.com/ivelsantos/cryptor/models"
 )
 
@@ -18,7 +19,7 @@ func TestBacktesting(t *testing.T) {
 		return
 	}
 
-	err = BackTesting(algos[0], 50)
+	err = backtesting.BackTesting(algos[0], 2)
 	if err != nil {
 		t.Error(err)
 	}

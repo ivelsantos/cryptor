@@ -19,8 +19,8 @@ type AlgoBacktesting struct {
 	Selltime  []int64
 }
 
-var Backtesting_Data []binance.Kline
 var Backtesting_Transactions AlgoBacktesting
+var Backtesting_Data []binance.Kline
 
 func BackTesting(algo models.Algor, window_size int) error {
 	var err error
@@ -30,17 +30,18 @@ func BackTesting(algo models.Algor, window_size int) error {
 		return err
 	}
 
-	log.Printf("\tBacktesting with %v datapoints\n", len(Backtesting_Data))
-
 	for _, line := range Backtesting_Data {
 		optAlgo := lang.GlobalStore("Algo", algo)
 		optBack := lang.GlobalStore("Back", line.CloseTime)
+		optBackData := lang.GlobalStore("BackData", Backtesting_Data)
 
-		_, err = lang.Parse("", []byte(algo.Buycode), optAlgo, optBack)
+		_, err = lang.Parse("", []byte(algo.Buycode), optAlgo, optBack, optBackData)
 		if err != nil {
 			log.Printf("%v: Parsing error: %v\n", algo.Name, err)
 		}
 	}
+
+	Backtesting_Data = []binance.Kline{}
 
 	return nil
 }
