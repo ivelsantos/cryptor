@@ -15,6 +15,9 @@ type AlgoBacktesting struct {
 	Selltime  []int64
 }
 
+var Backtesting_Transactions AlgoBacktesting
+var Backtesting_Data []binance.Kline
+
 func (a *AlgoBacktesting) CheckBought() bool {
 	if len(a.Buytime) != len(a.Selltime) {
 		return true

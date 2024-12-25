@@ -9,24 +9,21 @@ import (
 	"github.com/ivelsantos/cryptor/models"
 )
 
-var Backtesting_Transactions models.AlgoBacktesting
-var Backtesting_Data []binance.Kline
-
 func BackTesting(algo models.Algor, window_size int) error {
 	var err error
 
-	Backtesting_Data, err = data.GetData(algo, window_size)
+	models.Backtesting_Data, err = data.GetData(algo, window_size)
 	if err != nil {
 		return err
 	}
 
 	algo.State = "backtesting"
 
-	for i := range Backtesting_Data {
+	for i := range models.Backtesting_Data {
 		optAlgo := lang.GlobalStore("Algo", algo)
 		optIndex := lang.GlobalStore("Back", i)
-		optBackData := lang.GlobalStore("BackData", Backtesting_Data)
-		optBackTransaction := lang.GlobalStore("BackTransactions", Backtesting_Transactions)
+		optBackData := lang.GlobalStore("BackData", models.Backtesting_Data)
+		optBackTransaction := lang.GlobalStore("BackTransactions", models.Backtesting_Transactions)
 
 		_, err = lang.Parse("", []byte(algo.Buycode), optAlgo, optIndex, optBackData, optBackTransaction)
 		if err != nil {
@@ -34,8 +31,8 @@ func BackTesting(algo models.Algor, window_size int) error {
 		}
 	}
 
-	Backtesting_Data = []binance.Kline{}
-	Backtesting_Transactions = models.AlgoBacktesting{}
+	models.Backtesting_Data = []binance.Kline{}
+	models.Backtesting_Transactions = models.AlgoBacktesting{}
 
 	return nil
 }

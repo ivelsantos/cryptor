@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/adshao/go-binance/v2"
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services/crypt/values"
 )
@@ -85,14 +84,13 @@ func GetFuncValue(algo models.Algor, funcName string, args string) (float64, err
 	}
 }
 
-func GetCryptValue(algo models.Algor, key string, backData any, index any) (float64, error) {
-	backDataAny := backData.([]any)
+func GetCryptValue(algo models.Algor, key string, index any) (float64, error) {
 	n := index.(int)
 
 	switch key {
 	case "@Price":
-		if len(backDataAny) != 0 {
-			value, err := strconv.ParseFloat(backDataAny[n].(binance.Kline).Close, 64)
+		if algo.State == "backtesting" {
+			value, err := strconv.ParseFloat(models.Backtesting_Data[n].Close, 64)
 			if err != nil {
 				return 0.0, fmt.Errorf("Error parsing close value: %v", err)
 			}

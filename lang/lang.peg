@@ -194,15 +194,11 @@ Values <- '@'[a-zA-Z]+[0-9a-zA-Z_]* {
 
 	index, back := c.globalStore["Back"]
 	if back {
-		backData, ok := c.globalStore["BackData"]
-		if !ok {
-			return nil, fmt.Errorf("Unable to retrieve BackData")
-		}
-		val, err := crypt.GetCryptValue(algo, key, backData, index)
+		val, err := crypt.GetCryptValue(algo, key, index)
 		return val, err
 	}
 
-	val, err := crypt.GetCryptValue(algo, key, []any{}, 0)
+	val, err := crypt.GetCryptValue(algo, key, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -283,22 +279,14 @@ Buy <- "Buy()" {
 	// Checking and Handling backteting //
 	index, back := c.globalStore["Back"]
 	if back {
-		backData, ok := c.globalStore["BackData"]
-		if !ok {
-			return nil, fmt.Errorf("Unable to retrieve BackData")
-		}
-		backTransactions, ok := c.globalStore["BackTransactions"]
-		if !ok {
-			return nil, fmt.Errorf("Unable to retrieve BackTransactions")
-		}
-		_, err := operations.Buy(algo, backData, index, backTransactions)
+		_, err := operations.Buy(algo, index)
 		if err != nil {
 			return nil, err
 		}
 		return nil, nil
 	}
 
-	_, err := operations.Buy(algo, struct{}{}, struct{}{}, struct{}{})
+	_, err := operations.Buy(algo, struct{}{})
 	if err != nil {
 		return nil, err
 	}
@@ -336,22 +324,14 @@ Sell <- "Sell()" {
 	// Checking and Handling backteting //
 	index, back := c.globalStore["Back"]
 	if back {
-		backData, ok := c.globalStore["BackData"]
-		if !ok {
-			return nil, fmt.Errorf("Unable to retrieve BackData")
-		}
-		backTransactions, ok := c.globalStore["BackTransactions"]
-		if !ok {
-			return nil, fmt.Errorf("Unable to retrieve BackTransactions")
-		}
-		err := operations.Sell(algo, backData, index, backTransactions)
+		err := operations.Sell(algo, index)
 		if err != nil {
 			return nil, err
 		}
 		return nil, nil
 	}
 
-	err := operations.Sell(algo, struct{}{}, struct{}{}, struct{}{})
+	err := operations.Sell(algo, struct{}{})
 	if err != nil {
 		return nil, err
 	}
@@ -380,11 +360,6 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" _ {
 		return nil, nil
 	}
 
-	_, back := c.globalStore["Back"]
-	if back {
-		return nil, nil
-	}
-
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
@@ -394,22 +369,14 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" _ {
 	// Checking and Handling backteting //
 	index, back := c.globalStore["Back"]
 	if back {
-		backData, ok := c.globalStore["BackData"]
-		if !ok {
-			return nil, fmt.Errorf("Unable to retrieve BackData")
-		}
-		backTransactions, ok := c.globalStore["BackTransactions"]
-		if !ok {
-			return nil, fmt.Errorf("Unable to retrieve BackTransactions")
-		}
-		err := operations.StopLoss(algo, res.(float64), backData, index, backTransactions)
+		err := operations.StopLoss(algo, res.(float64), index)
 		if err != nil {
 			return nil, err
 		}
 		return nil, nil
 	}
 
-	err := operations.StopLoss(algo, res.(float64), struct{}{}, struct{}{}, struct{}{})
+	err := operations.StopLoss(algo, res.(float64), struct{}{})
 	if err != nil {
 		return nil, err
 	}
@@ -430,11 +397,6 @@ TakeProfit <- "Take_profit(" _ res:Number _ ")" {
 		return nil, nil
 	}
 
-	_, back := c.globalStore["Back"]
-	if back {
-		return nil, nil
-	}
-
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
@@ -444,22 +406,14 @@ TakeProfit <- "Take_profit(" _ res:Number _ ")" {
 	// Checking and Handling backteting //
 	index, back := c.globalStore["Back"]
 	if back {
-		backData, ok := c.globalStore["BackData"]
-		if !ok {
-			return nil, fmt.Errorf("Unable to retrieve BackData")
-		}
-		backTransactions, ok := c.globalStore["BackTransactions"]
-		if !ok {
-			return nil, fmt.Errorf("Unable to retrieve BackTransactions")
-		}
-		err := operations.TakeProfit(algo, res.(float64), backData, index, backTransactions)
+		err := operations.TakeProfit(algo, res.(float64), index)
 		if err != nil {
 			return nil, err
 		}
 		return nil, nil
 	}
 
-	err := operations.TakeProfit(algo, res.(float64), struct{}{}, struct{}{}, struct{}{})
+	err := operations.TakeProfit(algo, res.(float64), struct{}{})
 	if err != nil {
 		return nil, err
 	}

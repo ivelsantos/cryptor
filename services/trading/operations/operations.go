@@ -7,13 +7,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/adshao/go-binance/v2"
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services/crypt/testingnet"
 	"github.com/ivelsantos/cryptor/services/crypt/testnet"
 )
 
-func Buy(algo models.Algor, backData any, index any, backTrans any) (bool, error) {
+func Buy(algo models.Algor, index any) (bool, error) {
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTestingBuy(algo.Id)
@@ -147,16 +146,14 @@ func Buy(algo models.Algor, backData any, index any, backTrans any) (bool, error
 	case "verification":
 		return false, nil
 	case "backtesting":
-		backDataConv := backData.([]binance.Kline)
 		n := index.(int)
-		backTransConv := backData.(models.AlgoBacktesting)
 
-		ok := backTransConv.CheckBought()
+		ok := models.Backtesting_Transactions.CheckBought()
 		if ok {
 			return false, nil
 		}
 
-		err := backTransConv.InsertBuy(backDataConv[n])
+		err := models.Backtesting_Transactions.InsertBuy(models.Backtesting_Data[n])
 		if err != nil {
 			return false, err
 		}
@@ -166,7 +163,7 @@ func Buy(algo models.Algor, backData any, index any, backTrans any) (bool, error
 	}
 }
 
-func Sell(algo models.Algor, backData any, index any, backTrans any) error {
+func Sell(algo models.Algor, index any) error {
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTestingSell(algo.Id)
@@ -202,16 +199,14 @@ func Sell(algo models.Algor, backData any, index any, backTrans any) error {
 	case "verification":
 		return nil
 	case "backtesting":
-		backDataConv := backData.([]binance.Kline)
 		n := index.(int)
-		backTransConv := backData.(models.AlgoBacktesting)
 
-		ok := backTransConv.CheckSold()
+		ok := models.Backtesting_Transactions.CheckSold()
 		if ok {
 			return nil
 		}
 
-		err := backTransConv.InsertSell(backDataConv[n])
+		err := models.Backtesting_Transactions.InsertSell(models.Backtesting_Data[n])
 		if err != nil {
 			return err
 		}
@@ -221,7 +216,7 @@ func Sell(algo models.Algor, backData any, index any, backTrans any) error {
 	}
 }
 
-func StopLoss(algo models.Algor, stop float64, backData any, index any, backTrans any) error {
+func StopLoss(algo models.Algor, stop float64, index any) error {
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTestingSell(algo.Id)
@@ -345,16 +340,14 @@ func StopLoss(algo models.Algor, stop float64, backData any, index any, backTran
 	case "verification":
 		return nil
 	case "backtesting":
-		backDataConv := backData.([]binance.Kline)
 		n := index.(int)
-		backTransConv := backData.(models.AlgoBacktesting)
 
-		ok := backTransConv.CheckSold()
+		ok := models.Backtesting_Transactions.CheckSold()
 		if ok {
 			return nil
 		}
 
-		err := backTransConv.Stoploss(backDataConv[n], stop)
+		err := models.Backtesting_Transactions.Stoploss(models.Backtesting_Data[n], stop)
 		if err != nil {
 			return err
 		}
@@ -365,7 +358,7 @@ func StopLoss(algo models.Algor, stop float64, backData any, index any, backTran
 
 }
 
-func TakeProfit(algo models.Algor, take float64, backData any, index any, backTrans any) error {
+func TakeProfit(algo models.Algor, take float64, index any) error {
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTestingSell(algo.Id)
@@ -482,16 +475,14 @@ func TakeProfit(algo models.Algor, take float64, backData any, index any, backTr
 	case "verification":
 		return nil
 	case "backtesting":
-		backDataConv := backData.([]binance.Kline)
 		n := index.(int)
-		backTransConv := backData.(models.AlgoBacktesting)
 
-		ok := backTransConv.CheckSold()
+		ok := models.Backtesting_Transactions.CheckSold()
 		if ok {
 			return nil
 		}
 
-		err := backTransConv.Takeprofit(backDataConv[n], take)
+		err := models.Backtesting_Transactions.Takeprofit(models.Backtesting_Data[n], take)
 		if err != nil {
 			return err
 		}
