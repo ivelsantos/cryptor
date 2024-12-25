@@ -9,17 +9,7 @@ import (
 	"github.com/ivelsantos/cryptor/models"
 )
 
-type AlgoBacktesting struct {
-	Id        []int
-	Botid     []int
-	Ticket    []string
-	Buyvalue  []float64
-	Buytime   []int64
-	Sellvalue []float64
-	Selltime  []int64
-}
-
-var Backtesting_Transactions AlgoBacktesting
+var Backtesting_Transactions models.AlgoBacktesting
 var Backtesting_Data []binance.Kline
 
 func BackTesting(algo models.Algor, window_size int) error {
@@ -30,18 +20,22 @@ func BackTesting(algo models.Algor, window_size int) error {
 		return err
 	}
 
+	algo.State = "backtesting"
+
 	for i := range Backtesting_Data {
 		optAlgo := lang.GlobalStore("Algo", algo)
-		optBack := lang.GlobalStore("Back", i)
+		optIndex := lang.GlobalStore("Back", i)
 		optBackData := lang.GlobalStore("BackData", Backtesting_Data)
+		optBackTransaction := lang.GlobalStore("BackTransactions", Backtesting_Transactions)
 
-		_, err = lang.Parse("", []byte(algo.Buycode), optAlgo, optBack, optBackData)
+		_, err = lang.Parse("", []byte(algo.Buycode), optAlgo, optIndex, optBackData, optBackTransaction)
 		if err != nil {
 			log.Printf("%v: Parsing error: %v\n", algo.Name, err)
 		}
 	}
 
 	Backtesting_Data = []binance.Kline{}
+	Backtesting_Transactions = models.AlgoBacktesting{}
 
 	return nil
 }

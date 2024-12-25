@@ -1,7 +1,6 @@
 package lang
 
 import (
-	// "github.com/ivelsantos/cryptor/services/crypt"
 	"github.com/ivelsantos/cryptor/models"
 	"testing"
 )

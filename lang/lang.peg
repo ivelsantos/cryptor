@@ -274,18 +274,31 @@ Buy <- "Buy()" {
 		return nil, nil
 	}
 
-	_, back := c.globalStore["Back"]
-	if back {
-		return nil, nil
-	}
-
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
 	algo := algoAny.(models.Algor)
 
-	_, err := operations.Buy(algo)
+	// Checking and Handling backteting //
+	index, back := c.globalStore["Back"]
+	if back {
+		backData, ok := c.globalStore["BackData"]
+		if !ok {
+			return nil, fmt.Errorf("Unable to retrieve BackData")
+		}
+		backTransactions, ok := c.globalStore["BackTransactions"]
+		if !ok {
+			return nil, fmt.Errorf("Unable to retrieve BackTransactions")
+		}
+		_, err := operations.Buy(algo, backData, index, backTransactions)
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+
+	_, err := operations.Buy(algo, struct{}{}, struct{}{}, struct{}{})
 	if err != nil {
 		return nil, err
 	}
@@ -314,17 +327,31 @@ Sell <- "Sell()" {
 		return nil, nil
 	}
 
-	_, back := c.globalStore["Back"]
-	if back {
-		return nil, nil
-	}
-
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
 	algo := algoAny.(models.Algor)
-	err := operations.Sell(algo)
+
+	// Checking and Handling backteting //
+	index, back := c.globalStore["Back"]
+	if back {
+		backData, ok := c.globalStore["BackData"]
+		if !ok {
+			return nil, fmt.Errorf("Unable to retrieve BackData")
+		}
+		backTransactions, ok := c.globalStore["BackTransactions"]
+		if !ok {
+			return nil, fmt.Errorf("Unable to retrieve BackTransactions")
+		}
+		err := operations.Sell(algo, backData, index, backTransactions)
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+
+	err := operations.Sell(algo, struct{}{}, struct{}{}, struct{}{})
 	if err != nil {
 		return nil, err
 	}
@@ -364,7 +391,25 @@ StopLoss <- "Stop_loss(" _ res:Number _ ")" _ {
 	}
 	algo := algoAny.(models.Algor)
 
-	err := operations.StopLoss(algo, res.(float64))
+	// Checking and Handling backteting //
+	index, back := c.globalStore["Back"]
+	if back {
+		backData, ok := c.globalStore["BackData"]
+		if !ok {
+			return nil, fmt.Errorf("Unable to retrieve BackData")
+		}
+		backTransactions, ok := c.globalStore["BackTransactions"]
+		if !ok {
+			return nil, fmt.Errorf("Unable to retrieve BackTransactions")
+		}
+		err := operations.StopLoss(algo, res.(float64), backData, index, backTransactions)
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+
+	err := operations.StopLoss(algo, res.(float64), struct{}{}, struct{}{}, struct{}{})
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +441,25 @@ TakeProfit <- "Take_profit(" _ res:Number _ ")" {
 	}
 	algo := algoAny.(models.Algor)
 
-	err := operations.TakeProfit(algo, res.(float64))
+	// Checking and Handling backteting //
+	index, back := c.globalStore["Back"]
+	if back {
+		backData, ok := c.globalStore["BackData"]
+		if !ok {
+			return nil, fmt.Errorf("Unable to retrieve BackData")
+		}
+		backTransactions, ok := c.globalStore["BackTransactions"]
+		if !ok {
+			return nil, fmt.Errorf("Unable to retrieve BackTransactions")
+		}
+		err := operations.TakeProfit(algo, res.(float64), backData, index, backTransactions)
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+
+	err := operations.TakeProfit(algo, res.(float64), struct{}{}, struct{}{}, struct{}{})
 	if err != nil {
 		return nil, err
 	}
