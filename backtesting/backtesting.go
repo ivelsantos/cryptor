@@ -30,9 +30,9 @@ func BackTesting(algo models.Algor, window_size int) error {
 		return err
 	}
 
-	for _, line := range Backtesting_Data {
+	for i := range Backtesting_Data {
 		optAlgo := lang.GlobalStore("Algo", algo)
-		optBack := lang.GlobalStore("Back", line.CloseTime)
+		optBack := lang.GlobalStore("Back", i)
 		optBackData := lang.GlobalStore("BackData", Backtesting_Data)
 
 		_, err = lang.Parse("", []byte(algo.Buycode), optAlgo, optBack, optBackData)

@@ -2,6 +2,8 @@ package crypt
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 	"strings"
 
 	"github.com/adshao/go-binance/v2"
@@ -84,11 +86,20 @@ func GetFuncValue(algo models.Algor, funcName string, args string) (float64, err
 	}
 }
 
-func GetCryptValue(algo models.Algor, key string, back bool, timePoint string, backData any) (float64, error) {
-	backData = backData.([]binance.Kline)
+func GetCryptValue(algo models.Algor, key string, backData any, index any) (float64, error) {
+	backDataAny := backData.([]binance.Kline)
+	n := index.(int)
 
 	switch key {
 	case "@Price":
+		if len(backDataAny) != 0 {
+			value, err := strconv.ParseFloat(backDataAny[n].Close, 64)
+			if err != nil {
+				return 0.0, fmt.Errorf("Error parsing close value: %v", err)
+			}
+			return value, nil
+		}
+
 		price, err := values.GetPrice(algo.BaseAsset + algo.QuoteAsset)
 		if err != nil {
 			return 0, err
