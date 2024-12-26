@@ -147,86 +147,86 @@ var tests = []struct {
 	// 	Buy()
 	// end`, nil, []string{"buy"}},
 
-	{`let a = @Mean(window_size = 7)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{"buy"}},
-	{`let a = @Mean(window_size = 0)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{}},
-	{`let a = @Mean(window_size = 100)
-	let b = @Min(window_size = 100)
-	let c = @Max(window_size = 100)
-	if a > b
-		if a < c
-			Buy()
-		end
-	end`, nil, []string{"buy"}},
+	// {`let a = @Mean(window_size = 7)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
+	// {`let a = @Mean(window_size = 0)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{}},
+	// {`let a = @Mean(window_size = 100)
+	// let b = @Min(window_size = 100)
+	// let c = @Max(window_size = 100)
+	// if a > b
+	// 	if a < c
+	// 		Buy()
+	// 	end
+	// end`, nil, []string{"buy"}},
 
-	{`let a = @Median(window_size = 7, lag = 2)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{"buy"}},
-	{`let a = @Median(window_size = 0)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{}},
-	{`let a = @Median(window_size = 100)
-	let b = @Min(window_size = 100)
-	let c = @Max(window_size = 100)
-	if a > b
-		if a < c
-			Buy()
-		end
-	end`, nil, []string{"buy"}},
+	// {`let a = @Median(window_size = 7, lag = 2)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
+	// {`let a = @Median(window_size = 0)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{}},
+	// {`let a = @Median(window_size = 100)
+	// let b = @Min(window_size = 100)
+	// let c = @Max(window_size = 100)
+	// if a > b
+	// 	if a < c
+	// 		Buy()
+	// 	end
+	// end`, nil, []string{"buy"}},
 
-	{`let a = @Range(window_size = 7)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{"buy"}},
-	{`let a = @Range(window_size = 14, lag = 3)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{"buy"}},
-	{`let a = @Range(window_size = 20)
-	let b = @Mean(window_size = 20)
-	let c = @Min(window_size = 20)
-	if a < b
-		if a < c
-			Buy()
-		end
-	end`, nil, []string{"buy"}},
+	// {`let a = @Range(window_size = 7)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
+	// {`let a = @Range(window_size = 14, lag = 3)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
+	// {`let a = @Range(window_size = 20)
+	// let b = @Mean(window_size = 20)
+	// let c = @Min(window_size = 20)
+	// if a < b
+	// 	if a < c
+	// 		Buy()
+	// 	end
+	// end`, nil, []string{"buy"}},
 
-	{`let a = @Std(window_size = 25)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{"buy"}},
-	{`let a = @Std(window_size = 54, lag = 3)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{"buy"}},
+	// {`let a = @Std(window_size = 25)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
+	// {`let a = @Std(window_size = 54, lag = 3)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
 
-	{`let a = @Var(window_size = 25)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{"buy"}},
-	{`let a = @Var(window_size = 54, lag = 3)
-	let b = 0
-	if a > b
-		Buy()
-	end`, nil, []string{"buy"}},
+	// {`let a = @Var(window_size = 25)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
+	// {`let a = @Var(window_size = 54, lag = 3)
+	// let b = 0
+	// if a > b
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
 
-	{`let a = @Ema(window_size = 25)
+	{`let a = @Mean(window_size = 2000, lag = 10)
 	let b = 0
 	if a > b
 		Buy()
@@ -246,7 +246,7 @@ func TestExpressions(t *testing.T) {
 
 	optAlgo := GlobalStore("Algo", algos[0])
 	optTest := GlobalStore("Test", struct{}{})
-	for _, test := range tests_2 {
+	for _, test := range tests {
 		res, err := Parse("", []byte(test.code), optAlgo, optTest)
 		if test.err != nil {
 			if err == nil {

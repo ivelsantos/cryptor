@@ -211,16 +211,18 @@ Function <- '@'[a-zA-Z]+[0-9a-zA-Z_]* "(" _ rest:( ( Ident _ "=" _ Expr _ )? ( _
 		return nil, fmt.Errorf("Unable to retrieve algo")
 	}
 
-	_, back := c.globalStore["Back"]
-	if back {
-		return nil, nil
-	}
-
 	algo := algoAny.(models.Algor)
 
 	funcName := strings.Split(string(c.text), "(")[0]
 	args := strings.Split(string(c.text), "(")[1]
-	val, err := crypt.GetFuncValue(algo, funcName, args)
+
+	index, back := c.globalStore["Back"]
+	if back {
+		val, err := crypt.GetFuncValue(algo, funcName, index, args)
+		return val, err
+	}
+
+	val, err := crypt.GetFuncValue(algo, funcName, 0, args)
 	if err != nil {
 		return nil, err
 	}

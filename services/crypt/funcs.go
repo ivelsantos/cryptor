@@ -2,6 +2,7 @@ package crypt
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"slices"
 	"strconv"
@@ -199,10 +200,25 @@ func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error)
 	}
 
 	ticket := algo.BaseAsset + algo.QuoteAsset
-	klines, err = functions.GetKlines(ticket, account.ApiKey, account.SecretKey, int(window_int), lag)
-	if err != nil {
-		return values, err
+	if algo.State == "backtesting" {
+		num, _ := args["backindex"]
+		n, err := strconv.Atoi(num)
+		if err != nil {
+			return values, err
+		}
+
+		klines, err = functions.GetKlinesBacktesting(ticket, account.ApiKey, account.SecretKey, int(window_int), lag, n)
+		if err != nil {
+			return values, err
+		}
+	} else {
+		klines, err = functions.GetKlines(ticket, account.ApiKey, account.SecretKey, int(window_int), lag)
+		if err != nil {
+			return values, err
+		}
 	}
+
+	log.Printf("\tKLINES len: %v\n", len(klines))
 
 	for _, kline := range klines {
 		v, err := strconv.ParseFloat(kline.Close, 64)

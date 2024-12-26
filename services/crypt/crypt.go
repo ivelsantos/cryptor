@@ -9,7 +9,9 @@ import (
 	"github.com/ivelsantos/cryptor/services/crypt/values"
 )
 
-func GetFuncValue(algo models.Algor, funcName string, args string) (float64, error) {
+func GetFuncValue(algo models.Algor, funcName string, index any, args string) (float64, error) {
+	n := index.(int)
+
 	argsSlice := strings.Split(args, ",")
 	argsSlice[len(argsSlice)-1] = strings.ReplaceAll(argsSlice[len(argsSlice)-1], ")", "")
 	arguments := make(map[string]string)
@@ -19,6 +21,9 @@ func GetFuncValue(algo models.Algor, funcName string, args string) (float64, err
 			return 0, fmt.Errorf("Wrong argument format: %s", arg)
 		}
 		arguments[strings.Trim(sls[0], " ")] = strings.Trim(sls[1], " ")
+	}
+	if algo.State == "backtesting" {
+		arguments["backindex"] = strconv.Itoa(n)
 	}
 
 	switch funcName {
