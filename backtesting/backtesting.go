@@ -32,6 +32,7 @@ func BackTesting(algo models.Algor, window_size int) error {
 	}
 
 	models.Backtesting_Data = []binance.Kline{}
+	models.Backtesting_Prov_Data = []binance.Kline{}
 	models.Backtesting_Transactions = models.AlgoBacktesting{}
 
 	return nil

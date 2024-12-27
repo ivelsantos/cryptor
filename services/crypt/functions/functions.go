@@ -24,7 +24,7 @@ func GetKlines(symbol, apiKey, secretKey string, window int, lag int64) ([]binan
 		return klineData, fmt.Errorf("Error fetching data: %v", err)
 	}
 
-	for i := 0; i < len(lines)-int(lag); i++ {
+	for i := 0; i < len(lines); i++ {
 		klineData = append(klineData, *lines[i])
 	}
 
@@ -44,58 +44,38 @@ func GetKlines(symbol, apiKey, secretKey string, window int, lag int64) ([]binan
 		}
 		last = klineData[len(klineData)-1].CloseTime
 	}
-
 	return klineData, nil
 }
 
 func GetKlinesBacktesting(symbol, apiKey, secretKey string, window int, lag int64, index int) ([]binance.Kline, error) {
 	var klineData []binance.Kline
-	var klineLast []binance.Kline
+	var klineFull []binance.Kline
 
-	newIndex := index - int(lag)
-	now := models.Backtesting_Data[newIndex].CloseTime
+	first := models.Backtesting_Data[0].CloseTime
 
-	if newIndex >= 0 {
-		if (newIndex - window) >= 0 {
-			klineData = append(klineData, models.Backtesting_Data[(newIndex-window):newIndex+1]...)
-			return klineData, nil
-		}
-		klineLast = models.Backtesting_Data[:newIndex+1]
-		now = int64(models.Backtesting_Data[0].CloseTime) - 60000
-	}
-
-	client := binance.NewClient(apiKey, secretKey)
-
-	before := now - ((int64(window) - int64(len(klineLast))) * 1000 * 60)
-
-	lines, err := client.NewKlinesService().Symbol(symbol).
-		Interval("1m").StartTime(before).EndTime(now).Do(context.Background())
-	if err != nil {
-		return klineData, fmt.Errorf("Error fetching data: %v", err)
-	}
-
-	for i := 0; i < len(lines)-int(lag); i++ {
-		klineData = append(klineData, *lines[i])
-	}
-
-	// Getting the remaining data
-	last := klineData[len(klineData)-1].CloseTime
-
-	for last < now && len(lines) > 0 {
-		lines, err = client.NewKlinesService().Symbol(symbol).
-			Interval("1m").StartTime(last + 1).EndTime(now).Do(context.Background())
+	if len(models.Backtesting_Prov_Data) == 0 {
+		var err error
+		end := int64(first) - 60000
+		models.Backtesting_Prov_Data, err = getKlinesSupport(symbol, apiKey, secretKey, window+int(lag), end)
 		if err != nil {
-			fmt.Println(err)
-			return klineData, fmt.Errorf("Error fetching data: %v", err)
+			return klineData, fmt.Errorf("Error on getKlinesSupport: %v", err)
 		}
+	}
+	klineFull = append(klineFull, models.Backtesting_Prov_Data...)
+	klineFull = append(klineFull, models.Backtesting_Data...)
 
-		for i := 0; i < len(lines); i++ {
-			klineData = append(klineData, *lines[i])
-		}
-		last = klineData[len(klineData)-1].CloseTime
+	newIndex := index + len(models.Backtesting_Prov_Data) - int(lag)
+
+	// Tests just to be sure
+	if (newIndex - window) < 0 {
+		return klineData, fmt.Errorf("Error on GetKlinesBacktesting: (newIndex - window) < 0")
+	}
+	diff := models.Backtesting_Data[0].CloseTime - models.Backtesting_Prov_Data[len(models.Backtesting_Prov_Data)-1].CloseTime
+	if diff != 60000 {
+		return klineData, fmt.Errorf("Error on GetKlinesBacktesting: (Data - Prov_Data) != 60000 ")
 	}
 
-	klineData = append(klineData, klineLast...)
+	klineData = append(klineData, klineFull[(newIndex-window):newIndex]...)
 
 	return klineData, nil
 }
@@ -109,6 +89,44 @@ func GetKlinesByStartEnd(symbol, apiKey, secretKey string, window_size int) ([]b
 	if err != nil {
 		return klineData, fmt.Errorf("Error in getWindowTimes")
 	}
+
+	lines, err := client.NewKlinesService().Symbol(symbol).
+		Interval("1m").StartTime(before).EndTime(now).Do(context.Background())
+	if err != nil {
+		fmt.Println(err)
+		return klineData, fmt.Errorf("Error fetching data: %v", err)
+	}
+
+	for i := 0; i < len(lines); i++ {
+		klineData = append(klineData, *lines[i])
+	}
+
+	// Getting the remaining data
+	last := klineData[len(klineData)-1].CloseTime
+
+	for last < now && len(lines) > 0 {
+		lines, err = client.NewKlinesService().Symbol(symbol).
+			Interval("1m").StartTime(last + 1).EndTime(now).Do(context.Background())
+		if err != nil {
+			fmt.Println(err)
+			return klineData, fmt.Errorf("Error fetching data: %v", err)
+		}
+
+		for i := 0; i < len(lines); i++ {
+			klineData = append(klineData, *lines[i])
+		}
+		last = klineData[len(klineData)-1].CloseTime
+	}
+
+	return klineData, nil
+}
+
+func getKlinesSupport(symbol, apiKey, secretKey string, window_adjusted int, now int64) ([]binance.Kline, error) {
+	var klineData []binance.Kline
+
+	client := binance.NewClient(apiKey, secretKey)
+
+	before := now - (int64(window_adjusted) * 1000 * 60)
 
 	lines, err := client.NewKlinesService().Symbol(symbol).
 		Interval("1m").StartTime(before).EndTime(now).Do(context.Background())
