@@ -42,8 +42,6 @@ func (a *AlgoBacktesting) InsertBuy(line binance.Kline) error {
 	a.Id = append(a.Id, len(a.Id))
 	a.Buyvalue = append(a.Buyvalue, value)
 	a.Buytime = append(a.Buytime, line.CloseTime/1000)
-	a.Sellvalue = append(a.Sellvalue, 0)
-	a.Selltime = append(a.Selltime, 0)
 
 	return nil
 }
@@ -95,15 +93,15 @@ func (a *AlgoBacktesting) Takeprofit(line binance.Kline, take float64) error {
 func (a *AlgoBacktesting) last(field string) any {
 	switch field {
 	case "id":
-		return a.Id
+		return a.Id[len(a.Id)-1]
 	case "buyvalue":
-		return a.Buyvalue
+		return a.Buyvalue[len(a.Buyvalue)-1]
 	case "buytime":
-		return a.Buytime
+		return a.Buytime[len(a.Buytime)-1]
 	case "selltime":
-		return a.Selltime
+		return a.Selltime[len(a.Selltime)-1]
 	case "sellvalue":
-		return a.Sellvalue
+		return a.Sellvalue[len(a.Sellvalue)-1]
 	default:
 		return struct{}{}
 	}

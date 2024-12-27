@@ -27,9 +27,17 @@ func BackTesting(algo models.Algor, window_size int) error {
 
 		_, err = lang.Parse("", []byte(algo.Buycode), optAlgo, optIndex, optBackData, optBackTransaction)
 		if err != nil {
-			log.Printf("%v: Parsing error: %v\n", algo.Name, err)
+			log.Fatalf("%v: Parsing error: %v\n", algo.Name, err)
+		}
+
+		//// LOGGING
+		index := i + 1
+		if (index % 1440) == 0 {
+			log.Printf("\tDay %v\n", index/1440)
 		}
 	}
+
+	log.Printf("\tNumber of trades: %v\n", len(models.Backtesting_Transactions.Id))
 
 	models.Backtesting_Data = []binance.Kline{}
 	models.Backtesting_Prov_Data = []binance.Kline{}

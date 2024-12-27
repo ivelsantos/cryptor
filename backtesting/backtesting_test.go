@@ -9,9 +9,12 @@ import (
 
 var code string = `
 		let a = @Mean(window_size = 30)
-		if a > 0
+		let b = a / @Price
+		if b < 0.994
 			Buy()
 		end
+		Stop_loss(0.008)
+		Take_profit(0.005)
 	`
 
 func TestBacktesting(t *testing.T) {
