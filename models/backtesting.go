@@ -8,11 +8,19 @@ import (
 )
 
 type AlgoBacktesting struct {
-	Id        []int
-	Buyvalue  []float64
-	Buytime   []int64
-	Sellvalue []float64
-	Selltime  []int64
+	Id              []int
+	Buyvalue        []float64
+	Buytime         []int64 // Seconds
+	Sellvalue       []float64
+	Selltime        []int64 // Seconds
+	Return          []float64
+	Buytimelength   []int64 // Seconds
+	Selltimelength  []int64 // Seconds
+	Tradetimelength []int64 // Seconds
+}
+
+type ResultBacktesting struct {
+	Total_return float64
 }
 
 var Backtesting_Transactions AlgoBacktesting
@@ -54,6 +62,25 @@ func (a *AlgoBacktesting) InsertSell(line binance.Kline) error {
 
 	a.Sellvalue = append(a.Sellvalue, value)
 	a.Selltime = append(a.Selltime, line.CloseTime/1000)
+
+	// Calculating return considering Binance fees
+	buyvalue := a.Buyvalue[len(a.Buyvalue)-1]
+	a.Return = append(a.Return, ((value-(value*0.001))-(buyvalue+(buyvalue*0.001)))/buyvalue)
+
+	// Calculating Buytimelength
+	if len(a.Sellvalue) > 1 {
+		selltimeBefore := a.Selltime[len(a.Selltime)-2]
+		buytimelength := a.Buytime[len(a.Buytime)-1] - selltimeBefore
+		a.Buytimelength = append(a.Buytimelength, buytimelength)
+	} else {
+		a.Buytimelength = append(a.Buytimelength, 0)
+	}
+
+	// Calculating Selltimelength: Selltime - Buytime
+	a.Selltimelength = append(a.Selltimelength, a.Selltime[len(a.Selltime)-1]-a.Buytime[len(a.Buytime)-1])
+
+	// Calculating Tradetimelength: Selltimelength + Buytimelength
+	a.Tradetimelength = append(a.Tradetimelength, a.Selltimelength[len(a.Selltimelength)-1]+a.Buytimelength[len(a.Buytimelength)-1])
 
 	return nil
 }
