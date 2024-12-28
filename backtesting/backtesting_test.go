@@ -38,7 +38,7 @@ func TestBacktesting(t *testing.T) {
 	}
 }
 
-func BenchmarkGetData1(b *testing.B) {
+func BenchmarkBacktesting2(b *testing.B) {
 	err := models.InitDB("../algor.db")
 	if err != nil {
 		b.Error(err)
@@ -59,7 +59,50 @@ func BenchmarkGetData1(b *testing.B) {
 			b.Error(err)
 		}
 	}
-	// for i := 0; i < b.N; i++ {
-	// 	getDataBench(1, b)
-	// }
+}
+
+func BenchmarkBacktesting5(b *testing.B) {
+	err := models.InitDB("../algor.db")
+	if err != nil {
+		b.Error(err)
+	}
+
+	algos, err := models.GetAllAlgos()
+	if err != nil {
+		b.Errorf("Failed to get algos: %v", err)
+		return
+	}
+
+	// Injecting testingcode
+	algos[0].Buycode = code
+
+	for i := 0; i < b.N; i++ {
+		err = backtesting.BackTesting(algos[0], 5)
+		if err != nil {
+			b.Error(err)
+		}
+	}
+}
+
+func BenchmarkBacktesting10(b *testing.B) {
+	err := models.InitDB("../algor.db")
+	if err != nil {
+		b.Error(err)
+	}
+
+	algos, err := models.GetAllAlgos()
+	if err != nil {
+		b.Errorf("Failed to get algos: %v", err)
+		return
+	}
+
+	// Injecting testingcode
+	algos[0].Buycode = code
+
+	for i := 0; i < b.N; i++ {
+		err = backtesting.BackTesting(algos[0], 10)
+		if err != nil {
+			b.Error(err)
+		}
+	}
 }
