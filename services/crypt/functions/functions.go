@@ -61,8 +61,15 @@ func GetKlinesBacktesting(symbol, apiKey, secretKey string, window int, lag int6
 			return klineData, fmt.Errorf("Error on getKlinesSupport: %v", err)
 		}
 	}
+
+	// start := time.Now()
+
 	klineFull = append(klineFull, models.Backtesting_Prov_Data...)
 	klineFull = append(klineFull, models.Backtesting_Data...)
+
+	// end := time.Now()
+	// duration := end.Sub(start)
+	// log.Printf("\t@Append time: %v\n", duration)
 
 	newIndex := index + len(models.Backtesting_Prov_Data) - int(lag)
 

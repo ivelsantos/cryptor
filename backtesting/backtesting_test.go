@@ -32,8 +32,34 @@ func TestBacktesting(t *testing.T) {
 	// Injecting testingcode
 	algos[0].Buycode = code
 
-	err = backtesting.BackTesting(algos[0], 30)
+	err = backtesting.BackTesting(algos[0], 2)
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func BenchmarkGetData1(b *testing.B) {
+	err := models.InitDB("../algor.db")
+	if err != nil {
+		b.Error(err)
+	}
+
+	algos, err := models.GetAllAlgos()
+	if err != nil {
+		b.Errorf("Failed to get algos: %v", err)
+		return
+	}
+
+	// Injecting testingcode
+	algos[0].Buycode = code
+
+	for i := 0; i < b.N; i++ {
+		err = backtesting.BackTesting(algos[0], 2)
+		if err != nil {
+			b.Error(err)
+		}
+	}
+	// for i := 0; i < b.N; i++ {
+	// 	getDataBench(1, b)
+	// }
 }
