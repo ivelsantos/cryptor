@@ -28,11 +28,11 @@ func BackTesting(algo models.Algor, window_size int) error {
 			log.Fatalf("%v: Parsing error: %v\n", algo.Name, err)
 		}
 
-		//// LOGGING
-		// index := i + 1
-		// if (index % 1440) == 0 {
-		// 	log.Printf("\tDay %v\n", index/1440)
-		// }
+		// LOGGING
+		index := i + 1
+		if (index % 1440) == 0 {
+			log.Printf("\tDay %v\n", index/1440)
+		}
 	}
 
 	// days := len(models.Backtesting_Data) / 1440

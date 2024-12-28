@@ -49,7 +49,6 @@ func GetKlines(symbol, apiKey, secretKey string, window int, lag int64) ([]binan
 
 func GetKlinesBacktesting(symbol, apiKey, secretKey string, window int, lag int64, index int) ([]binance.Kline, error) {
 	var klineData []binance.Kline
-	var klineFull []binance.Kline
 
 	first := models.Backtesting_Data[0].CloseTime
 
@@ -63,9 +62,6 @@ func GetKlinesBacktesting(symbol, apiKey, secretKey string, window int, lag int6
 	}
 
 	// start := time.Now()
-
-	klineFull = append(klineFull, models.Backtesting_Prov_Data...)
-	klineFull = append(klineFull, models.Backtesting_Data...)
 
 	// end := time.Now()
 	// duration := end.Sub(start)
@@ -82,7 +78,7 @@ func GetKlinesBacktesting(symbol, apiKey, secretKey string, window int, lag int6
 		return klineData, fmt.Errorf("Error on GetKlinesBacktesting: (Data - Prov_Data) != 60000 ")
 	}
 
-	klineData = append(klineData, klineFull[(newIndex-window):newIndex]...)
+	klineData = append(klineData, joinIndex(&models.Backtesting_Prov_Data, &models.Backtesting_Data, uint(newIndex-window), uint(newIndex))...)
 
 	return klineData, nil
 }
@@ -185,4 +181,21 @@ func getWindowTimes(window int) (int64, int64, error) {
 	before := time.Now().AddDate(0, 0, (window * -1)).UnixMilli()
 
 	return now, before, nil
+}
+
+func joinIndex(s1 *[]binance.Kline, s2 *[]binance.Kline, start, end uint) []binance.Kline {
+	var result []binance.Kline
+
+	s1_n := len(*s1)
+
+	if int(end) < s1_n {
+		return (*s1)[start:end]
+	} else if int(start) < s1_n {
+		result = append(result, (*s1)[start:]...)
+		result = append(result, (*s2)[:int(end)-s1_n]...)
+	} else {
+		return (*s2)[int(start)-s1_n : int(end)-s1_n]
+	}
+
+	return result
 }
