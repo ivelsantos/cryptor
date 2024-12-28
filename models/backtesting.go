@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/adshao/go-binance/v2"
@@ -20,7 +21,10 @@ type AlgoBacktesting struct {
 }
 
 type ResultBacktesting struct {
-	Total_return float64
+	Daily_return        float64
+	Ticket_Daily_return float64
+	Sucess_rate         float64
+	Avg_trade_time      int64
 }
 
 var Backtesting_Transactions AlgoBacktesting
@@ -115,6 +119,44 @@ func (a *AlgoBacktesting) Takeprofit(line binance.Kline, take float64) error {
 	}
 
 	return nil
+}
+
+func (a *AlgoBacktesting) Metrics(days int, closeStart, closeEnd string) ResultBacktesting {
+	result := ResultBacktesting{}
+	n_trades := len(a.Return)
+
+	priceStart, _ := strconv.ParseFloat(closeStart, 64)
+	priceEnd, _ := strconv.ParseFloat(closeEnd, 64)
+
+	// Daily return
+	tw := 1.0
+	for _, value := range a.Return {
+		tw = tw * (1 + value)
+	}
+	twr := tw - 1
+	result.Daily_return = math.Pow(1+twr, 1/float64(days)) - 1
+
+	// Ticket daily return
+	ticketReturn := (priceEnd - priceStart) / priceStart
+	result.Ticket_Daily_return = math.Pow(1+ticketReturn, 1/float64(days)) - 1
+
+	// Sucess rate
+	var sucessTrades float64
+	for _, value := range a.Return {
+		if value > 0 {
+			sucessTrades += 1
+		}
+	}
+	result.Sucess_rate = sucessTrades / float64(n_trades)
+
+	// Average trade time
+	var totalTradeTime int64
+	for _, value := range a.Tradetimelength {
+		totalTradeTime += value
+	}
+	result.Avg_trade_time = totalTradeTime / int64(n_trades)
+
+	return result
 }
 
 func (a *AlgoBacktesting) last(field string) any {

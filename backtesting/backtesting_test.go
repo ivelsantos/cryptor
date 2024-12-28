@@ -32,7 +32,7 @@ func TestBacktesting(t *testing.T) {
 	// Injecting testingcode
 	algos[0].Buycode = code
 
-	err = backtesting.BackTesting(algos[0], 5)
+	err = backtesting.BackTesting(algos[0], 30)
 	if err != nil {
 		t.Error(err)
 	}
