@@ -35,17 +35,16 @@ func BackTesting(algo models.Algor, window_size int) error {
 		}
 	}
 
-	// days := len(models.Backtesting_Data) / 1440
-	// priceStart := models.Backtesting_Data[0].Close
-	// priceEnd := models.Backtesting_Data[len(models.Backtesting_Data)-1].Close
-	// metrics := models.Backtesting_Transactions.Metrics(days, priceStart, priceEnd)
+	days := len(models.Backtesting_Data) / 1440
+	priceStart := models.Backtesting_Data[0].Close
+	priceEnd := models.Backtesting_Data[len(models.Backtesting_Data)-1].Close
+	metrics := models.Backtesting_Transactions.Metrics(days, priceStart, priceEnd)
 
-	// log.Printf("\n")
-	// log.Printf("\tNumber of trades: %v\n", len(models.Backtesting_Transactions.Id))
-	// log.Printf("\tAverage trade time: %v\n", metrics.Avg_trade_time/60)
-	// log.Printf("\tDaily return: %.4f\n", metrics.Daily_return)
-	// log.Printf("\tTicket daily return: %.4f\n", metrics.Ticket_Daily_return)
-	// log.Printf("\tSucess rate: %.4f\n", metrics.Sucess_rate)
+	log.Printf("\tNumber of trades: %v\n", len(models.Backtesting_Transactions.Id))
+	log.Printf("\tAverage trade time: %v\n", metrics.Avg_trade_time/60)
+	log.Printf("\tDaily return: %.4f\n", metrics.Daily_return)
+	log.Printf("\tTicket daily return: %.4f\n", metrics.Ticket_Daily_return)
+	log.Printf("\tSucess rate: %.4f\n", metrics.Sucess_rate)
 
 	models.Backtesting_Data = []binance.Kline{}
 	models.Backtesting_Prov_Data = []binance.Kline{}

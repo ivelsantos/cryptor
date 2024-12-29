@@ -52,7 +52,7 @@ func GetKlinesBacktesting(symbol, apiKey, secretKey string, window int, lag int6
 
 	first := models.Backtesting_Data[0].CloseTime
 
-	if len(models.Backtesting_Prov_Data) == 0 {
+	if len(models.Backtesting_Prov_Data) < (window + int(lag)) {
 		var err error
 		end := int64(first) - 60000
 		models.Backtesting_Prov_Data, err = getKlinesSupport(symbol, apiKey, secretKey, window+int(lag), end)
@@ -60,12 +60,6 @@ func GetKlinesBacktesting(symbol, apiKey, secretKey string, window int, lag int6
 			return klineData, fmt.Errorf("Error on getKlinesSupport: %v", err)
 		}
 	}
-
-	// start := time.Now()
-
-	// end := time.Now()
-	// duration := end.Sub(start)
-	// log.Printf("\t@Append time: %v\n", duration)
 
 	newIndex := index + len(models.Backtesting_Prov_Data) - int(lag)
 

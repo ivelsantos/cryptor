@@ -10,6 +10,7 @@ import (
 	"github.com/adshao/go-binance/v2"
 	"github.com/ivelsantos/cryptor/models"
 	"github.com/ivelsantos/cryptor/services/crypt/functions"
+	"gonum.org/v1/gonum/stat"
 )
 
 func GetMaxValue(algo models.Algor, args map[string]string) (float64, error) {
@@ -60,7 +61,7 @@ func GetMeanValue(algo models.Algor, args map[string]string) (float64, error) {
 		return 0, nil
 	}
 
-	return calculateMean(values), nil
+	return stat.Mean(values, nil), nil
 }
 
 func GetMedianValue(algo models.Algor, args map[string]string) (float64, error) {
@@ -72,16 +73,7 @@ func GetMedianValue(algo models.Algor, args map[string]string) (float64, error) 
 		return 0, nil
 	}
 
-	slices.Sort(values)
-
-	n := len(values)
-	var result float64
-	if n%2 == 1 {
-		result = values[int(n/2)]
-	} else {
-		i := n / 2
-		result = (values[i-1] + values[i]) / 2
-	}
+	result := stat.Quantile(0.5, stat.Empirical, values, nil)
 
 	return result, nil
 }
@@ -95,18 +87,7 @@ func GetVarValue(algo models.Algor, args map[string]string) (float64, error) {
 		return 0, nil
 	}
 
-	var sum float64
-	for _, value := range values {
-		sum += value
-	}
-	meanValue := sum / float64(len(values))
-
-	var varianceSum float64
-	for _, v := range values {
-		diff := v - meanValue
-		varianceSum += diff * diff
-	}
-	variance := varianceSum / float64(len(values))
+	variance := stat.Variance(values, nil)
 
 	return variance, nil
 }
@@ -120,18 +101,7 @@ func GetStdValue(algo models.Algor, args map[string]string) (float64, error) {
 		return 0, nil
 	}
 
-	var sum float64
-	for _, value := range values {
-		sum += value
-	}
-	meanValue := sum / float64(len(values))
-
-	var varianceSum float64
-	for _, v := range values {
-		diff := v - meanValue
-		varianceSum += diff * diff
-	}
-	variance := varianceSum / float64(len(values))
+	variance := stat.Variance(values, nil)
 
 	stdDev := math.Sqrt(variance)
 
@@ -226,24 +196,6 @@ func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error)
 	}
 
 	return values, nil
-}
-
-func calculateMean(values []float64) float64 {
-	if len(values) == 0 {
-		return 0
-	}
-
-	if len(values) == 1 {
-		return values[0]
-	}
-
-	var sum float64
-	for _, value := range values {
-		sum += value
-	}
-	meanValue := sum / float64(len(values))
-
-	return meanValue
 }
 
 func timeMsToSeconds(mili int64) time.Time {

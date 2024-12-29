@@ -124,6 +124,9 @@ func (a *AlgoBacktesting) Takeprofit(line binance.Kline, take float64) error {
 func (a *AlgoBacktesting) Metrics(days int, closeStart, closeEnd string) ResultBacktesting {
 	result := ResultBacktesting{}
 	n_trades := len(a.Return)
+	if n_trades < 1 {
+		return result
+	}
 
 	priceStart, _ := strconv.ParseFloat(closeStart, 64)
 	priceEnd, _ := strconv.ParseFloat(closeEnd, 64)
@@ -154,6 +157,7 @@ func (a *AlgoBacktesting) Metrics(days int, closeStart, closeEnd string) ResultB
 	for _, value := range a.Tradetimelength {
 		totalTradeTime += value
 	}
+
 	result.Avg_trade_time = totalTradeTime / int64(n_trades)
 
 	return result

@@ -8,7 +8,7 @@ import (
 )
 
 var code string = `
-		let a = @Mean(window_size = 30)
+		let a = @Mean(window_size = 2000)
 		let b = a / @Price
 		if b < 0.994
 			Buy()
@@ -32,7 +32,7 @@ func TestBacktesting(t *testing.T) {
 	// Injecting testingcode
 	algos[0].Buycode = code
 
-	err = backtesting.BackTesting(algos[0], 30)
+	err = backtesting.BackTesting(algos[0], 5)
 	if err != nil {
 		t.Error(err)
 	}
