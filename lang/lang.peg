@@ -3,6 +3,7 @@
 
 	import( 
 		"fmt"
+		"math/big"
 		"strings"
 		"github.com/ivelsantos/cryptor/services/crypt"
 		"github.com/ivelsantos/cryptor/services/trading/operations"
@@ -30,7 +31,7 @@
 			return l != r
 		},
 		"==": func(l, r any) any {
-			return l == r
+			return compare(l, r)
 		},
 		">": func(l, r any) any {
 			return l.(float64) > r.(float64)
@@ -75,6 +76,21 @@
 	        l = ops[op](l, r)
 	    }
 	    return l
+	}
+
+	func compare(a, b any) bool {
+		a_float, ok := a.(float64)
+		if ok {
+			b_float, ok := b.(float64)
+			if ok {
+				a1 := big.NewFloat(a_float)
+				a1.SetPrec(9)
+				b1 := big.NewFloat(b_float)
+				b1.SetPrec(9)
+				return a1.Cmp(b1) == 0
+			}
+		}
+		return a == b
 	}
 }
 

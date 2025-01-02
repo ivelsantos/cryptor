@@ -233,6 +233,27 @@ var tests = []struct {
 	end`, nil, []string{"buy"}},
 }
 
+var tests_3 = []struct {
+	code string
+	err  error
+	exp  []string
+}{
+	{`if 0.03 == 0.03
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`if 0.03 == 0.0301
+		Buy()
+	end`, nil, []string{}},
+	{`if 0.03 == 0.030
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = 0.15 + 0.15
+	let b = 0.1 + 0.2
+	if a == b
+		Buy()
+	end`, nil, []string{"buy"}},
+}
+
 func TestExpressions(t *testing.T) {
 	err := models.InitDB("../algor.db")
 	if err != nil {
@@ -246,7 +267,7 @@ func TestExpressions(t *testing.T) {
 
 	optAlgo := GlobalStore("Algo", algos[0])
 	optTest := GlobalStore("Test", struct{}{})
-	for _, test := range tests {
+	for _, test := range tests_3 {
 		res, err := Parse("", []byte(test.code), optAlgo, optTest)
 		if test.err != nil {
 			if err == nil {
