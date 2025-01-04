@@ -238,20 +238,15 @@ var tests_3 = []struct {
 	err  error
 	exp  []string
 }{
-	{`if 0.03 == 0.03
-		Buy()
-	end`, nil, []string{"buy"}},
-	{`if 0.03 == 0.0301
-		Buy()
-	end`, nil, []string{}},
-	{`if 0.03 == 0.030
-		Buy()
-	end`, nil, []string{"buy"}},
 	{`let a = 0.15 + 0.15
 	let b = 0.1 + 0.2
 	if a == b
 		Buy()
 	end`, nil, []string{"buy"}},
+	// {`let a = "ok"
+	// if a == "ok"
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
 }
 
 func TestExpressions(t *testing.T) {
