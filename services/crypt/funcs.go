@@ -1,6 +1,7 @@
 package crypt
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"slices"
@@ -137,6 +138,46 @@ func GetEmaValue(algo models.Algor, args map[string]string) (float64, error) {
 	}
 
 	return ema, nil
+}
+
+func GetPrice(algo models.Algor, args map[string]string) (float64, error) {
+	if algo.State == "backtesting" {
+		num, _ := args["backindex"]
+		n, err := strconv.Atoi(num)
+		if err != nil {
+			return 0, fmt.Errorf("Error on GetPrice: %v", err)
+		}
+
+		value, err := strconv.ParseFloat(models.Backtesting_Data[n].Close, 64)
+		if err != nil {
+			return 0.0, fmt.Errorf("Error parsing close value: %v", err)
+		}
+
+		return value, nil
+	}
+
+	account, err := models.GetAccountByName(algo.Owner)
+	if err != nil {
+		return 0, err
+	}
+
+	client := binance.NewClient(account.ApiKey, account.SecretKey)
+
+	price, err := client.NewListPricesService().Symbol(algo.BaseAsset + algo.QuoteAsset).Do(context.Background())
+	if err != nil {
+		return 0, fmt.Errorf("Error on GetPrice: %v", err)
+	}
+
+	if len(price) != 1 {
+		return 0, fmt.Errorf("Wrong number of ticker prices")
+	}
+
+	priceFloat, err := strconv.ParseFloat(price[0].Price, 64)
+	if err != nil {
+		return 0, fmt.Errorf("Error on GetPrice: %v", err)
+	}
+
+	return priceFloat, nil
 }
 
 func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error) {

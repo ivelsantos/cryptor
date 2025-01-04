@@ -265,6 +265,10 @@ var tests_3 = []struct {
 	if a == "ok"
 		// Buy()
 	end`, nil, []string{}},
+	{`let a = @Price()
+	if a > 0
+		Buy()
+	end`, nil, []string{"buy"}},
 }
 
 func TestExpressions(t *testing.T) {

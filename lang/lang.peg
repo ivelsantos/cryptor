@@ -168,7 +168,7 @@ Grouping <- '(' expr:Expr ')' {
     return first, nil
 }
 
-Primary <- primary:( String / Number / Bool / Var / Function / Values ) {
+Primary <- primary:( String / Number / Bool / Var / Function ) {
 	return primary, nil
 }
 
@@ -204,29 +204,6 @@ String <- '"' first:Ident '"' {
 
 Number <- [+-]?[0-9]+([.][0-9]*)? {
     return strconv.ParseFloat(string(c.text), 64)
-}
-
-Values <- '@'[a-zA-Z]+[0-9a-zA-Z_]* {
-	algoAny, ok := c.globalStore["Algo"]
-	if !ok {
-		return nil, fmt.Errorf("Unable to retrieve algo")
-	}
-
-	algo := algoAny.(models.Algor)
-
-	key := string(c.text)
-
-	index, back := c.globalStore["Back"]
-	if back {
-		val, err := crypt.GetCryptValue(algo, key, index)
-		return val, err
-	}
-
-	val, err := crypt.GetCryptValue(algo, key, 0)
-	if err != nil {
-		return nil, err
-	}
-	return val, nil
 }
 
 Function <- '@'[a-zA-Z]+[0-9a-zA-Z_]* "(" _ rest:( ( Ident _ "=" _ Expr _ )? ( _ "," _ Ident _ "=" _ Expr _ )*) ")" {

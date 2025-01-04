@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/ivelsantos/cryptor/models"
-	"github.com/ivelsantos/cryptor/services/crypt/values"
 )
 
 func GetFuncValue(algo models.Algor, funcName string, index any, args string) (float64, error) {
@@ -17,8 +16,8 @@ func GetFuncValue(algo models.Algor, funcName string, index any, args string) (f
 	arguments := make(map[string]string)
 	for _, arg := range argsSlice {
 		sls := strings.Split(arg, "=")
-		if len(sls) != 2 {
-			return 0, fmt.Errorf("Wrong argument format: %s", arg)
+		if len(sls) < 2 {
+			continue
 		}
 		arguments[strings.Trim(sls[0], " ")] = strings.Trim(sls[1], " ")
 	}
@@ -84,32 +83,14 @@ func GetFuncValue(algo models.Algor, funcName string, index any, args string) (f
 		}
 		return val, nil
 
-	default:
-		return 0, fmt.Errorf("Function %s does not exists", funcName)
-	}
-}
-
-func GetCryptValue(algo models.Algor, key string, index any) (float64, error) {
-	n := index.(int)
-
-	switch key {
 	case "@Price":
-		if algo.State == "backtesting" {
-
-			value, err := strconv.ParseFloat(models.Backtesting_Data[n].Close, 64)
-			if err != nil {
-				return 0.0, fmt.Errorf("Error parsing close value: %v", err)
-			}
-
-			return value, nil
-		}
-
-		price, err := values.GetPrice(algo.BaseAsset + algo.QuoteAsset)
+		val, err := GetPrice(algo, arguments)
 		if err != nil {
 			return 0, err
 		}
-		return price, nil
+		return val, nil
+
 	default:
-		return 0, fmt.Errorf("Value not found!")
+		return 0, fmt.Errorf("Function %s does not exists", funcName)
 	}
 }
