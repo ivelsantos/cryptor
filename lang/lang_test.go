@@ -243,10 +243,18 @@ var tests_3 = []struct {
 	if a == b
 		Buy()
 	end`, nil, []string{"buy"}},
-	// {`let a = "ok"
-	// if a == "ok"
-	// 	Buy()
-	// end`, nil, []string{"buy"}},
+	{`let a = "ok"
+	if a == "ok"
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = "ok"
+	if a == "oka"
+		Buy()
+	end`, nil, []string{}},
+	{`let a = "ok"
+	if a == "o"
+		Buy()
+	end`, nil, []string{}},
 }
 
 func TestExpressions(t *testing.T) {

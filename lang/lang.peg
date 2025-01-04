@@ -164,7 +164,7 @@ Grouping <- '(' expr:Expr ')' {
     return first, nil
 }
 
-Primary <- primary:( Number / Bool / Var / Function / Values ) {
+Primary <- primary:( String / Number / Bool / Var / Function / Values ) {
 	return primary, nil
 }
 
@@ -193,6 +193,10 @@ AddOp <- ( '+' / '-' ) {
 MulOp <- ( '*' / '/' ) {
     return string(c.text), nil
 }
+
+String <- '"' first:Ident '"' {
+	return first.(string), nil
+} 
 
 Number <- [+-]?[0-9]+([.][0-9]*)? {
     return strconv.ParseFloat(string(c.text), 64)
