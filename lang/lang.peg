@@ -105,7 +105,11 @@ Input <- ( _ Stmt _ )+ {
 	return []string{} , nil
 }
 
-Stmt <- ( Set / Cond / Action ) {
+Stmt <- ( Comment / Set / Cond / Action ) {
+	return nil, nil
+}
+
+Comment <- "//" ( !'\n' . )* '\n' {
 	return nil, nil
 }
 
