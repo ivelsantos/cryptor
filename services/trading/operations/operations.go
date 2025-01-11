@@ -216,7 +216,10 @@ func Sell(algo models.Algor, index any) error {
 	}
 }
 
-func StopLoss(algo models.Algor, stop float64, index any) error {
+func StopLoss(algo models.Algor, stopPercentage float64, index any) error {
+	// Converting percentage to proportion
+	stop := stopPercentage / 100
+
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTestingSell(algo.Id)
@@ -358,7 +361,10 @@ func StopLoss(algo models.Algor, stop float64, index any) error {
 
 }
 
-func TakeProfit(algo models.Algor, take float64, index any) error {
+func TakeProfit(algo models.Algor, takePercentage float64, index any) error {
+	// Converting percentage to proportion
+	take := takePercentage / 100
+
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTestingSell(algo.Id)
