@@ -265,15 +265,46 @@ var tests_3 = []struct {
 	if a == "ok"
 		// Buy()
 	end`, nil, []string{}},
-	// {`let a = @Price()
-	// if a > 0
-	// 	Buy()
-	// end`, nil, []string{"buy"}},
-	{`let a = @Ema(window_size = 14)
-	  let b = @Ema(window_size = 14, lag = 14)
-	if a != b
+	{`let a = 5
+	let b = 5
+	if a == b
 		Buy()
 	end`, nil, []string{"buy"}},
+	{`let a = 5.1
+	let b = 5.2
+	if a == b
+		Buy()
+	end`, nil, []string{}},
+	{`let a = 5.0001
+	let b = 5.0002
+	if a == b
+		Buy()
+	end`, nil, []string{}},
+	{`let a = 5.0001
+	let b = 5.0001
+	if a == b
+		Buy()
+	end`, nil, []string{"buy"}},
+	{`let a = 5.00000001
+	let b = 5.00000002
+	if a == b
+		Buy()
+	end`, nil, []string{}},
+	{`let a = 5.00000001
+	let b = 5.00000001
+	if a == b
+		Buy()
+	end`, nil, []string{"buy"}},
+	// {`let a = @Mean(ws = 14, lag = 20)
+	// let b = @Mean(window_size = 14, lg = 20)
+	// if a == b
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
+	// {`let a = @Mean(ws = 14)
+	// let b = @Mean(window_size = 14, lg = 19)
+	// if a == b
+	// 	Buy()
+	// end`, nil, []string{}},
 }
 
 func TestExpressions(t *testing.T) {

@@ -3,7 +3,7 @@
 
 	import( 
 		"fmt"
-		"math/big"
+		"math"
 		"strings"
 		"github.com/ivelsantos/cryptor/services/crypt"
 		"github.com/ivelsantos/cryptor/services/trading/operations"
@@ -79,17 +79,17 @@
 	}
 
 	func compare(a, b any) bool {
-		a_float, ok := a.(float64)
-		if ok {
-			b_float, ok := b.(float64)
-			if ok {
-				a1 := big.NewFloat(a_float)
-				a1.SetPrec(9)
-				b1 := big.NewFloat(b_float)
-				b1.SetPrec(9)
-				return a1.Cmp(b1) == 0
-			}
+		// Type assertion to float64
+		aFloat, aOk := a.(float64)
+		bFloat, bOk := b.(float64)
+
+		// if both are float64, compare up to the ninth decimal place
+		if aOk && bOk {
+			const epsilon = 1e-9
+			return math.Abs(aFloat - bFloat) < epsilon
 		}
+
+		// otherwise, use the normal comparation operator
 		return a == b
 	}
 }

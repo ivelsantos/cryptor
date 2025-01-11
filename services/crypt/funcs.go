@@ -192,7 +192,11 @@ func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error)
 	// Parsing window argument
 	window, ok := args["window_size"]
 	if !ok {
-		return values, fmt.Errorf("window argument not set")
+		// window_size parameter abbreviation
+		window, ok = args["ws"]
+		if !ok {
+			return values, fmt.Errorf("window argument not set")
+		}
 	}
 	window_int, err := strconv.ParseInt(window, 0, 0)
 	if err != nil {
@@ -209,6 +213,15 @@ func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error)
 		lag, err = strconv.ParseInt(num, 0, 0)
 		if err != nil {
 			return values, fmt.Errorf("Error on ParseInt on lag argument parsing: %v", err)
+		}
+	} else {
+		// lag parameter abbreviation
+		num, ok = args["lg"]
+		if ok {
+			lag, err = strconv.ParseInt(num, 0, 0)
+			if err != nil {
+				return values, fmt.Errorf("Error on ParseInt on lag argument parsing: %v", err)
+			}
 		}
 	}
 
