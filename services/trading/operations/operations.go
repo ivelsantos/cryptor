@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ivelsantos/cryptor/models"
@@ -12,7 +13,23 @@ import (
 	"github.com/ivelsantos/cryptor/services/crypt/testnet"
 )
 
-func Buy(algo models.Algor, index any) (bool, error) {
+func Buy(algo models.Algor, index any, args string) (bool, error) {
+	// Parsing the arguments
+	argsSlice := strings.Split(args, ",")
+	argsSlice[len(argsSlice)-1] = strings.ReplaceAll(argsSlice[len(argsSlice)-1], ")", "")
+	arguments := make(map[string]string)
+	for _, arg := range argsSlice {
+		sls := strings.Split(arg, "=")
+		if len(sls) < 2 {
+			continue
+		}
+		arguments[strings.Trim(sls[0], " ")] = strings.Trim(sls[1], " ")
+	}
+	// Up to this point, Buy() should have exactly one argument passed, quantity or percentage
+	if len(arguments) != 1 {
+		return false, fmt.Errorf("Buy() should have one of two arguments: quantity or percentage")
+	}
+
 	switch algo.State {
 	case "testing":
 		transactions, err := models.GetTestingBuy(algo.Id)
@@ -158,6 +175,8 @@ func Buy(algo models.Algor, index any) (bool, error) {
 			return false, err
 		}
 		return true, nil
+	case "lang_test":
+		return false, nil
 	default:
 		return false, fmt.Errorf("Unknown mode\n")
 	}

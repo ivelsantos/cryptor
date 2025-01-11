@@ -307,6 +307,18 @@ var tests_3 = []struct {
 	// end`, nil, []string{}},
 }
 
+var tests_4 = []struct {
+	code string
+	err  error
+	exp  []string
+}{
+	{`let a = 0.15 + 0.15
+	let b = 0.1 + 0.2
+	if a == b
+		Buy(percentage = 10, quantity = 10)
+	end`, nil, []string{"buy"}},
+}
+
 func TestExpressions(t *testing.T) {
 	err := models.InitDB("../algor.db")
 	if err != nil {
@@ -318,9 +330,10 @@ func TestExpressions(t *testing.T) {
 		t.Errorf("Failed to get algos: %v", err)
 	}
 
+	algos[0].State = "lang_test"
 	optAlgo := GlobalStore("Algo", algos[0])
 	optTest := GlobalStore("Test", struct{}{})
-	for _, test := range tests_3 {
+	for _, test := range tests_4 {
 		res, err := Parse("", []byte(test.code), optAlgo, optTest)
 		if test.err != nil {
 			if err == nil {

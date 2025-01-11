@@ -260,18 +260,18 @@ Action <- Buy / Sell / StopLoss / TakeProfit {
 	return nil, nil
 }
 
-Buy <- "Buy()" {
-	_, test := c.globalStore["Test"]
-	if test {
-		res, ok := c.globalStore["result"]
-		if ok {
-			c.globalStore["result"] = append(res.([]string), "buy")
-			return nil, nil
-		}
+Buy <- "Buy(" _ rest:( ( Ident _ "=" _ Expr _ )? ( _ "," _ Ident _ "=" _ Expr _ )*) ")" {
+	// _, test := c.globalStore["Test"]
+	// if test {
+	// 	res, ok := c.globalStore["result"]
+	// 	if ok {
+	// 		c.globalStore["result"] = append(res.([]string), "buy")
+	// 		return nil, nil
+	// 	}
 
-		c.globalStore["result"] = []string{"buy"}
-		return nil, nil
-	}
+	// 	c.globalStore["result"] = []string{"buy"}
+	// 	return nil, nil
+	// }
 
 	algoAny, ok := c.globalStore["Algo"]
 	if !ok {
@@ -279,27 +279,30 @@ Buy <- "Buy()" {
 	}
 	algo := algoAny.(models.Algor)
 
+	// Getting the arguments
+	args := strings.Split(string(c.text), "(")[1]
+
 	// Checking and Handling backteting //
 	index, back := c.globalStore["Back"]
 	if back {
-		_, err := operations.Buy(algo, index)
+		_, err := operations.Buy(algo, index, args)
 		if err != nil {
 			return nil, err
 		}
 		return nil, nil
 	}
 
-	_, err := operations.Buy(algo, struct{}{})
+	_, err := operations.Buy(algo, struct{}{}, args)
 	if err != nil {
 		return nil, err
 	}
 
+	// Register buy for tests
 	res, ok := c.globalStore["result"]
 	if ok {
 		c.globalStore["result"] = append(res.([]string), "buy")
 		return nil, nil
 	}
-
 	c.globalStore["result"] = []string{"buy"}
 
 	return nil, nil
