@@ -207,6 +207,9 @@ func gettingKlines(algo models.Algor, args map[string]string) ([]float64, error)
 	num, ok := args["lag"]
 	if ok {
 		lag, err = strconv.ParseInt(num, 0, 0)
+		if err != nil {
+			return values, fmt.Errorf("Error on ParseInt on lag argument parsing: %v", err)
+		}
 	}
 
 	ticket := algo.BaseAsset + algo.QuoteAsset

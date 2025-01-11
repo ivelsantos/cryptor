@@ -265,8 +265,13 @@ var tests_3 = []struct {
 	if a == "ok"
 		// Buy()
 	end`, nil, []string{}},
-	{`let a = @Price()
-	if a > 0
+	// {`let a = @Price()
+	// if a > 0
+	// 	Buy()
+	// end`, nil, []string{"buy"}},
+	{`let a = @Ema(window_size = 14)
+	  let b = @Ema(window_size = 14, lag = 14)
+	if a != b
 		Buy()
 	end`, nil, []string{"buy"}},
 }
