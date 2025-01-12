@@ -312,11 +312,16 @@ var tests_4 = []struct {
 	err  error
 	exp  []string
 }{
-	{`let a = 0.15 + 0.15
-	let b = 0.1 + 0.2
+	{`a = 0.15 + 0.15
+	b = 0.1 + 0.2
 	if a == b
-		Buy(percentage = 10, quantity = 10)
+		Buy(percentage = 10)
 	end`, nil, []string{"buy"}},
+	{`a = 0.15 + 0.25
+	b = 0.1 + 0.2
+	if a == b
+		Buy(percentage = 10)
+	end`, nil, []string{}},
 }
 
 func TestExpressions(t *testing.T) {
