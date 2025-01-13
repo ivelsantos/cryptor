@@ -39,6 +39,23 @@ func InsertAlgo(algor Algor) error {
 	return nil
 }
 
+func GetAlgoById(id int) (Algor, error) {
+	query := `
+	SELECT * FROM algos
+	WHERE id = ?
+	`
+	var algo Algor
+
+	row := db.QueryRow(query, id)
+
+	err := row.Scan(&algo.Id, &algo.Owner, &algo.Name, &algo.Created, &algo.Buycode, &algo.State, &algo.BaseAsset, &algo.QuoteAsset)
+	if err != nil {
+		return algo, fmt.Errorf("Failed to retrieve algo: %v", err)
+	}
+
+	return algo, nil
+}
+
 func GetAlgos(owner string) ([]Algor, error) {
 	query := `SELECT * FROM algos WHERE owner = ?`
 	var algos []Algor
