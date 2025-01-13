@@ -94,18 +94,14 @@ func Buy(algo models.Algor, index any, args string) (bool, error) {
 		}
 
 		// Getting quote balance available
-		asset, err := testnet.GetAccountQuote(account.ApiKey_test, account.SecretKey_test, algo.QuoteAsset)
-		if err != nil {
-			return false, err
-		}
-		asset_float, err := strconv.ParseFloat(asset, 64)
+		asset, err := testnet.GetAccountCoin(account.ApiKey_test, account.SecretKey_test, algo.QuoteAsset)
 		if err != nil {
 			return false, err
 		}
 		// Getting order value from argument
 		var orderValue float64
 		if arg == "percentage" {
-			orderValue = asset_float * (value / 100)
+			orderValue = asset * (value / 100)
 		} else {
 			orderValue = value
 		}
@@ -235,7 +231,16 @@ func Sell(algo models.Algor, index any) error {
 			return fmt.Errorf("models.GetAccountByName: %v", err)
 		}
 
+		// Checking for available balance
+		ok, err := checkBalance(account, algo.BaseAsset, transactions[0])
+		if err != nil {
+			return fmt.Errorf("models.EraseTransaction: %v", err)
+		} else if !ok {
+			return nil
+		}
+
 		quant := strconv.FormatFloat(transactions[0].Buyquantity, 'f', -1, 64)
+
 		order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transactions[0].Ticket, quant)
 		if err != nil {
 			return fmt.Errorf("testnet.Sell: %v", err)
@@ -345,6 +350,14 @@ func StopLoss(algo models.Algor, stopPercentage float64, index any) error {
 		account, err := models.GetAccountByName(algo.Owner)
 		if err != nil {
 			return fmt.Errorf("models.GetAccountByName: %v", err)
+		}
+
+		// Checking for available balance
+		ok, err := checkBalance(account, algo.BaseAsset, transaction)
+		if err != nil {
+			return fmt.Errorf("models.EraseTransaction: %v", err)
+		} else if !ok {
+			return nil
 		}
 
 		ticker := algo.BaseAsset + algo.QuoteAsset
@@ -481,6 +494,14 @@ func TakeProfit(algo models.Algor, takePercentage float64, index any) error {
 			return err
 		}
 
+		// Checking for available balance
+		ok, err := checkBalance(account, algo.BaseAsset, transaction)
+		if err != nil {
+			return fmt.Errorf("models.EraseTransaction: %v", err)
+		} else if !ok {
+			return nil
+		}
+
 		ticker := algo.BaseAsset + algo.QuoteAsset
 
 		bidPrice, _, err := testnet.GetDepth(account.ApiKey, account.SecretKey, ticker)
@@ -550,6 +571,25 @@ func TakeProfit(algo models.Algor, takePercentage float64, index any) error {
 	default:
 		return fmt.Errorf("Unknown mode\n")
 	}
+}
+
+func checkBalance(account models.Account, symbol string, transaction models.AlgoTransaction) (bool, error) {
+	// Getting base balance available
+	baseAsset, err := testnet.GetAccountCoin(account.ApiKey_test, account.SecretKey_test, symbol)
+	if err != nil {
+		return false, err
+	}
+	// If there is not enough base asset on the balance, the trade should be deleted
+	if transaction.Buyquantity > baseAsset {
+		err := models.EraseTransaction(transaction.Id)
+		if err != nil {
+			return false, fmt.Errorf("models.EraseTransaction: %v", err)
+		}
+		return false, nil
+	}
+
+	// If there is enough balance, return true
+	return true, nil
 }
 
 func roundFloat(val float64, precision uint) float64 {

@@ -190,6 +190,7 @@ func (m model) View() string {
 		b.WriteString(m.inputs[i].View())
 		if i < len(m.inputs)-1 {
 			b.WriteRune('\n')
+			b.WriteRune('\n')
 		}
 	}
 

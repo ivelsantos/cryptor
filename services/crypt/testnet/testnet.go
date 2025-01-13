@@ -44,21 +44,23 @@ func SellQuote(apikey, secretkey, symbol, quoteOrder string) (*binance.CreateOrd
 	return order, nil
 }
 
-func GetAccountQuote(apikey, secretkey, quote string) (string, error) {
+func GetAccountCoin(apikey, secretkey, quote string) (float64, error) {
 	binance.UseTestnet = true
 	client := binance.NewClient(apikey, secretkey)
 
 	res, err := client.NewGetAccountService().Do(context.Background())
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	brl, err := getCoinBalance(quote, res.Balances)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return brl, nil
+	brl_float, err := strconv.ParseFloat(brl, 64)
+
+	return brl_float, nil
 }
 
 func GetOrderStatus(apikey, secretkey, symbol string, orderid int) (string, error) {

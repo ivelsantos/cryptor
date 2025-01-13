@@ -256,7 +256,7 @@ func GetUniqueAlgoTransaction() ([]int, error) {
 	return botids, nil
 }
 
-func EraseTransaction() error {
+func EraseIncompleteTransaction() error {
 	query := `
 		DELETE FROM transactions
 		WHERE sellvalue IS NULL
@@ -271,6 +271,29 @@ func EraseTransaction() error {
 	_, err = stmt.Exec()
 	for checkSqlBusy(err) {
 		_, err = stmt.Exec()
+	}
+	if err != nil {
+		return fmt.Errorf("Failed to execute statement: %v", err)
+	}
+
+	return nil
+}
+
+func EraseTransaction(id int) error {
+	query := `
+		DELETE FROM transactions
+		WHERE id = ?
+	`
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return fmt.Errorf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec(id)
 	}
 	if err != nil {
 		return fmt.Errorf("Failed to execute statement: %v", err)
