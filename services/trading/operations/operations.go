@@ -2,7 +2,6 @@ package operations
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -28,6 +27,24 @@ func Buy(algo models.Algor, index any, args string) (bool, error) {
 	// Up to this point, Buy() should have exactly one argument passed, quantity or percentage
 	if len(arguments) != 1 {
 		return false, fmt.Errorf("Buy() should have one of two arguments: quantity or percentage")
+	}
+	// Checking for arguments needed
+	var arg string
+	var valueStr string
+	var ok bool
+	if valueStr, ok = arguments["percentage"]; ok {
+		arg = "percentage"
+	} else if valueStr, ok = arguments["pct"]; ok {
+		arg = "percentage"
+	} else if valueStr, ok = arguments["quantity"]; !ok {
+		if valueStr, ok = arguments["qty"]; !ok {
+			return false, fmt.Errorf("Buy() should have one of two arguments: quantity or percentage")
+		}
+	}
+
+	value, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		return false, fmt.Errorf("Wrong format for %v value on Buy(): %v", arg, err)
 	}
 
 	switch algo.State {
@@ -60,7 +77,7 @@ func Buy(algo models.Algor, index any, args string) (bool, error) {
 		}
 		return true, nil
 	case "live":
-		transactions, err := models.GetTestingBuy(algo.Id)
+		transactions, err := models.GetTransactionBuy(algo.Id)
 		if err != nil {
 			return false, err
 		}
@@ -72,7 +89,11 @@ func Buy(algo models.Algor, index any, args string) (bool, error) {
 		ticket := algo.BaseAsset + algo.QuoteAsset
 
 		account, err := models.GetAccountByName(algo.Owner)
+		if err != nil {
+			return false, err
+		}
 
+		// Getting quote balance available
 		asset, err := testnet.GetAccountQuote(account.ApiKey_test, account.SecretKey_test, algo.QuoteAsset)
 		if err != nil {
 			return false, err
@@ -81,51 +102,46 @@ func Buy(algo models.Algor, index any, args string) (bool, error) {
 		if err != nil {
 			return false, err
 		}
+		// Getting order value from argument
+		var orderValue float64
+		if arg == "percentage" {
+			orderValue = asset_float * (value / 100)
+		} else {
+			orderValue = value
+		}
 
+		// Getting the minimal value allowed for an order
 		minNotional, err := testnet.GetMinNotional(account.ApiKey_test, account.SecretKey_test, ticket)
 		if err != nil {
 			return false, err
 		}
 
-		minOrder := minNotional * 4
-
-		if minOrder > asset_float {
-			quoteOrder := minOrder * 2
-			quoteOrderStr := strconv.FormatFloat(quoteOrder, 'f', -1, 64)
-
-			_, err := testnet.SellQuote(account.ApiKey_test, account.SecretKey_test, ticket, quoteOrderStr)
-			if err != nil {
-				return false, err
-			}
+		// Verify if the order value is bigger enough
+		if minNotional >= orderValue {
+			// For now, if the order is not big enough, it will be ignored
+			return false, nil
 		}
 
-		minOrderStr := strconv.FormatFloat(minOrder, 'f', -1, 64)
-
-		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, ticket, minOrderStr)
+		// Send the order
+		// orderValueStr := strconv.FormatFloat(orderValue, 'f', -1, 64)
+		orderValueStr := fmt.Sprintf("%.2f", orderValue)
+		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, ticket, orderValueStr)
 		if err != nil {
 			return false, err
 		}
 
 		//// Making sure the order is fulfilled
-		time.Sleep(2 * time.Second) // wait for two seconds to make sure the transaction is done
-
+		time.Sleep(1 * time.Second) // wait for two seconds to make sure the transaction is done
 		updatedOrder, err := testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, ticket, int(order.OrderID))
 		if err != nil {
 			return false, fmt.Errorf("testnet.GetOrder: %v", err)
 		}
-
-		count := 0
-		for string(updatedOrder.Status) != "FILLED" && count < 30 {
-			time.Sleep(2 * time.Second)
+		for string(updatedOrder.Status) != "FILLED" {
+			time.Sleep(1 * time.Second)
 			updatedOrder, err = testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, ticket, int(order.OrderID))
 			if err != nil {
 				return false, fmt.Errorf("testnet.GetOrder: %v", err)
 			}
-			count++
-		}
-
-		if string(updatedOrder.Status) != "FILLED" {
-			log.Fatalf("Buy order %v not fulfilled\n", order.OrderID)
 		}
 
 		tb := models.TransactionBuy{Botid: algo.Id, Baseasset: algo.BaseAsset, Quoteasset: algo.QuoteAsset}
@@ -146,16 +162,8 @@ func Buy(algo models.Algor, index any, args string) (bool, error) {
 		tb.Buytime = int(order.TransactTime)
 
 		err = models.InsertTransactionBuy(tb)
-		count = 0
-
-		for err != nil && count < 100 {
-			err = models.InsertTransactionBuy(tb)
-			time.Sleep(250 * time.Millisecond)
-			count += 1
-		}
-
 		if err != nil {
-			return false, fmt.Errorf("InsertTestingBuy: %v", err)
+			return false, fmt.Errorf("InsertTransactionBuy: %v", err)
 		}
 		return true, nil
 	case "waiting":
@@ -199,7 +207,7 @@ func Sell(algo models.Algor, index any) error {
 		}
 		ticker := algo.BaseAsset + algo.QuoteAsset
 
-		bidPrice, _, err := testingnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
+		bidPrice, _, err := testingnet.GetDepth(account.ApiKey, account.SecretKey, ticker)
 		if err != nil {
 			return err
 		}
@@ -213,9 +221,59 @@ func Sell(algo models.Algor, index any) error {
 			}
 		}
 		return nil
-	case "waiting", "live":
+	case "live":
+		transactions, err := models.GetTransactionSell(algo.Id)
+		if err != nil {
+			return fmt.Errorf("models.GetTesting: %v", err)
+		}
+		if len(transactions) != 1 {
+			return nil
+		}
+
+		account, err := models.GetAccountByName(algo.Owner)
+		if err != nil {
+			return fmt.Errorf("models.GetAccountByName: %v", err)
+		}
+
+		quant := strconv.FormatFloat(transactions[0].Buyquantity, 'f', -1, 64)
+		order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transactions[0].Ticket, quant)
+		if err != nil {
+			return fmt.Errorf("testnet.Sell: %v", err)
+		}
+
+		//// Making sure the order is fulfilled
+		time.Sleep(1 * time.Second) // wait for two seconds to make sure the transaction is done
+
+		updatedOrder, err := testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transactions[0].Ticket, int(order.OrderID))
+		if err != nil {
+			return fmt.Errorf("testnet.GetOrder: %v", err)
+		}
+
+		for string(updatedOrder.Status) != "FILLED" {
+			time.Sleep(1 * time.Second)
+			updatedOrder, err = testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transactions[0].Ticket, int(order.OrderID))
+			if err != nil {
+				return fmt.Errorf("testnet.GetOrder: %v", err)
+			}
+		}
+
+		ts := models.TransactionSell{Entryid: transactions[0].Id, Orderid: transactions[0].Orderid}
+		ts.Orderstatus = string(updatedOrder.Status)
+
+		cum, err := strconv.ParseFloat(updatedOrder.CummulativeQuoteQuantity, 64)
+		if err != nil {
+			return fmt.Errorf("ParseFloat: %v", err)
+		}
+		ts.Sellvalue = cum
+		ts.Selltime = int(order.TransactTime)
+
+		err = models.InsertTransactionSell(ts)
+		if err != nil {
+			return fmt.Errorf("models.InsertTransactionSell: %v", err)
+		}
+
 		return nil
-	case "verification":
+	case "verification", "waiting":
 		return nil
 	case "backtesting":
 		n := index.(int)
@@ -255,7 +313,7 @@ func StopLoss(algo models.Algor, stopPercentage float64, index any) error {
 		}
 		ticker := algo.BaseAsset + algo.QuoteAsset
 
-		bidPrice, _, err := testingnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
+		bidPrice, _, err := testingnet.GetDepth(account.ApiKey, account.SecretKey, ticker)
 		if err != nil {
 			return err
 		}
@@ -279,9 +337,10 @@ func StopLoss(algo models.Algor, stopPercentage float64, index any) error {
 		if err != nil {
 			return fmt.Errorf("models.GetTesting: %v", err)
 		}
-		if len(transactions) < 1 {
+		if len(transactions) != 1 {
 			return nil
 		}
+		transaction := transactions[0]
 
 		account, err := models.GetAccountByName(algo.Owner)
 		if err != nil {
@@ -290,7 +349,7 @@ func StopLoss(algo models.Algor, stopPercentage float64, index any) error {
 
 		ticker := algo.BaseAsset + algo.QuoteAsset
 
-		bidPrice, askPrice, err := testnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
+		bidPrice, askPrice, err := testnet.GetDepth(account.ApiKey, account.SecretKey, ticker)
 		if err != nil {
 			return err
 		}
@@ -302,58 +361,45 @@ func StopLoss(algo models.Algor, stopPercentage float64, index any) error {
 			price = bidPrice
 		}
 
-		for _, transaction := range transactions {
-			buyprice := transaction.Buyvalue / transaction.Buyquantity
-			sellPrice := buyprice - (stop * buyprice)
+		buyprice := transaction.Buyvalue / transaction.Buyquantity
+		sellPrice := buyprice - (stop * buyprice)
 
-			if price <= sellPrice {
-				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
-				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
-				if err != nil {
-					return fmt.Errorf("testnet.Sell: %v", err)
-				}
+		if price <= sellPrice {
+			quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
+			order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
+			if err != nil {
+				return fmt.Errorf("testnet.Sell: %v", err)
+			}
 
-				//// Making sure the order is fulfilled
-				time.Sleep(2 * time.Second) // wait for two seconds to make sure the transaction is done
+			//// Making sure the order is fulfilled
+			time.Sleep(1 * time.Second) // wait for one seconds to make sure the transaction is done
 
-				updatedOrder, err := testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, int(order.OrderID))
+			updatedOrder, err := testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, int(order.OrderID))
+			if err != nil {
+				return fmt.Errorf("testnet.GetOrder: %v", err)
+			}
+
+			for string(updatedOrder.Status) != "FILLED" {
+				time.Sleep(1 * time.Second)
+				updatedOrder, err = testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, int(order.OrderID))
 				if err != nil {
 					return fmt.Errorf("testnet.GetOrder: %v", err)
 				}
+			}
 
-				count := 0
-				for string(updatedOrder.Status) != "FILLED" && count < 30 {
-					time.Sleep(2 * time.Second)
-					updatedOrder, err = testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, int(order.OrderID))
-					if err != nil {
-						return fmt.Errorf("testnet.GetOrder: %v", err)
-					}
-					count++
-				}
+			ts := models.TransactionSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
+			ts.Orderstatus = string(updatedOrder.Status)
 
-				if string(updatedOrder.Status) != "FILLED" {
-					log.Fatalf("StopLoss order %v not fulfilled\n", order.OrderID)
-				}
+			cum, err := strconv.ParseFloat(updatedOrder.CummulativeQuoteQuantity, 64)
+			if err != nil {
+				return fmt.Errorf("ParseFloat: %v", err)
+			}
+			ts.Sellvalue = cum
+			ts.Selltime = int(order.TransactTime)
 
-				ts := models.TransactionSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
-				ts.Orderstatus = string(updatedOrder.Status)
-
-				cum, err := strconv.ParseFloat(updatedOrder.CummulativeQuoteQuantity, 64)
-				if err != nil {
-					return fmt.Errorf("ParseFloat: %v", err)
-				}
-				ts.Sellvalue = cum
-				ts.Selltime = int(order.TransactTime)
-
-				err = models.InsertTransactionSell(ts)
-				count = 0
-				for err != nil && count < 100 {
-					err = models.InsertTransactionSell(ts)
-					count += 1
-				}
-				if err != nil {
-					return fmt.Errorf("models.InsertTransactionSell: %v", err)
-				}
+			err = models.InsertTransactionSell(ts)
+			if err != nil {
+				return fmt.Errorf("models.InsertTransactionSell: %v", err)
 			}
 		}
 		return nil
@@ -401,7 +447,7 @@ func TakeProfit(algo models.Algor, takePercentage float64, index any) error {
 
 		ticker := algo.BaseAsset + algo.QuoteAsset
 
-		bidPrice, _, err := testingnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
+		bidPrice, _, err := testingnet.GetDepth(account.ApiKey, account.SecretKey, ticker)
 		if err != nil {
 			return err
 		}
@@ -424,9 +470,11 @@ func TakeProfit(algo models.Algor, takePercentage float64, index any) error {
 		if err != nil {
 			return err
 		}
-		if len(transactions) < 1 {
+		if len(transactions) != 1 {
 			return nil
 		}
+
+		transaction := transactions[0]
 
 		account, err := models.GetAccountByName(algo.Owner)
 		if err != nil {
@@ -435,63 +483,50 @@ func TakeProfit(algo models.Algor, takePercentage float64, index any) error {
 
 		ticker := algo.BaseAsset + algo.QuoteAsset
 
-		bidPrice, _, err := testnet.GetDepth(account.ApiKey_test, account.SecretKey_test, ticker)
+		bidPrice, _, err := testnet.GetDepth(account.ApiKey, account.SecretKey, ticker)
 		if err != nil {
 			return err
 		}
 
-		for _, transaction := range transactions {
-			buyprice := transaction.Buyvalue / transaction.Buyquantity
-			sellPrice := buyprice + (take * buyprice)
+		buyprice := transaction.Buyvalue / transaction.Buyquantity
+		sellPrice := buyprice + (take * buyprice)
 
-			if bidPrice > sellPrice {
-				quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
-				order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
-				if err != nil {
-					return err
-				}
+		if bidPrice > sellPrice {
+			quant := strconv.FormatFloat(transaction.Buyquantity, 'f', -1, 64)
+			order, err := testnet.Sell(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, quant)
+			if err != nil {
+				return err
+			}
 
-				//// Making sure the order is fulfilled
-				time.Sleep(2 * time.Second) // wait for two seconds to make sure the transaction is done
+			//// Making sure the order is fulfilled
+			time.Sleep(1 * time.Second) // wait for two seconds to make sure the transaction is done
 
-				updatedOrder, err := testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, int(order.OrderID))
+			updatedOrder, err := testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, int(order.OrderID))
+			if err != nil {
+				return fmt.Errorf("testnet.GetOrder: %v", err)
+			}
+
+			for string(updatedOrder.Status) != "FILLED" {
+				time.Sleep(2 * time.Second)
+				updatedOrder, err = testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, int(order.OrderID))
 				if err != nil {
 					return fmt.Errorf("testnet.GetOrder: %v", err)
 				}
+			}
 
-				count := 0
-				for string(updatedOrder.Status) != "FILLED" && count < 30 {
-					time.Sleep(2 * time.Second)
-					updatedOrder, err = testnet.GetOrder(account.ApiKey_test, account.SecretKey_test, transaction.Ticket, int(order.OrderID))
-					if err != nil {
-						return fmt.Errorf("testnet.GetOrder: %v", err)
-					}
-					count++
-				}
+			ts := models.TransactionSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
+			ts.Orderstatus = string(updatedOrder.Status)
 
-				if string(updatedOrder.Status) != "FILLED" {
-					log.Fatalf("TakeProfit order %v not fulfilled\n", order.OrderID)
-				}
+			cum, err := strconv.ParseFloat(updatedOrder.CummulativeQuoteQuantity, 64)
+			if err != nil {
+				return err
+			}
+			ts.Sellvalue = cum
+			ts.Selltime = int(order.TransactTime)
 
-				ts := models.TransactionSell{Entryid: transaction.Id, Orderid: transaction.Orderid}
-				ts.Orderstatus = string(updatedOrder.Status)
-
-				cum, err := strconv.ParseFloat(updatedOrder.CummulativeQuoteQuantity, 64)
-				if err != nil {
-					return err
-				}
-				ts.Sellvalue = cum
-				ts.Selltime = int(order.TransactTime)
-
-				err = models.InsertTransactionSell(ts)
-				count = 0
-				for err != nil && count < 100 {
-					err = models.InsertTransactionSell(ts)
-					count += 1
-				}
-				if err != nil {
-					return err
-				}
+			err = models.InsertTransactionSell(ts)
+			if err != nil {
+				return err
 			}
 		}
 		return nil

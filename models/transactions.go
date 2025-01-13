@@ -49,7 +49,7 @@ type AlgoStatsLive struct {
 
 func InsertTransactionBuy(tb TransactionBuy) error {
 	query := `
-		INSERT INTO testing (botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime)
+		INSERT INTO transactions (botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 
@@ -72,7 +72,7 @@ func InsertTransactionBuy(tb TransactionBuy) error {
 
 func InsertTransactionSell(ts TransactionSell) error {
 	query := `
-		UPDATE testing
+		UPDATE transactions
 		SET sellvalue = ?,
 			selltime = ?,
 			orderstatus = ?,
@@ -99,7 +99,7 @@ func InsertTransactionSell(ts TransactionSell) error {
 
 func UpdateOrderStatus(status string, id int) error {
 	query := `
-		UPDATE testing
+		UPDATE transactions
 		SET orderstatus = ?
 		WHERE id = ?
 	`
@@ -123,9 +123,8 @@ func UpdateOrderStatus(status string, id int) error {
 
 func GetTransactionSell(botid int) ([]AlgoTransaction, error) {
 	query := `
-		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM testing
+		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM transactions
 		WHERE sellvalue IS NULL
-		AND orderstatus IS 'FILLED'
 		AND botid = ?
 	`
 	var algos []AlgoTransaction
@@ -133,7 +132,7 @@ func GetTransactionSell(botid int) ([]AlgoTransaction, error) {
 	rows, err := db.Query(query, botid)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			return nil, fmt.Errorf("Failed to retrieve testing algos: %v", err)
+			return nil, fmt.Errorf("Failed to retrieve transactions algos: %v", err)
 		}
 	}
 	defer rows.Close()
@@ -158,8 +157,8 @@ func GetTransactionSell(botid int) ([]AlgoTransaction, error) {
 
 func GetTransactionBuy(botid int) ([]AlgoTransaction, error) {
 	query := `
-		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM testing
-		WHERE (sellvalue IS NULL OR orderstatus IS NOT 'FILLED')
+		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM transactions
+		WHERE sellvalue IS NULL
 		AND botid = ?
 	`
 	var algos []AlgoTransaction
@@ -167,7 +166,7 @@ func GetTransactionBuy(botid int) ([]AlgoTransaction, error) {
 	rows, err := db.Query(query, botid)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			return nil, fmt.Errorf("Failed to retrieve testing algos: %v", err)
+			return nil, fmt.Errorf("Failed to retrieve transactions algos: %v", err)
 		}
 	}
 	defer rows.Close()
@@ -192,7 +191,7 @@ func GetTransactionBuy(botid int) ([]AlgoTransaction, error) {
 
 func GetTransactionPending(botid int) ([]AlgoTransaction, error) {
 	query := `
-		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM testing
+		SELECT id, botid, orderid, ticket, orderstatus, buyvalue, buyquantity, buytime FROM transactions
 		WHERE orderstatus IS NOT 'FILLED'
 		AND botid = ?
 	`
@@ -201,7 +200,7 @@ func GetTransactionPending(botid int) ([]AlgoTransaction, error) {
 	rows, err := db.Query(query, botid)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			return nil, fmt.Errorf("Failed to retrieve testing algos: %v", err)
+			return nil, fmt.Errorf("Failed to retrieve transactions algos: %v", err)
 		}
 	}
 	defer rows.Close()
@@ -227,14 +226,14 @@ func GetTransactionPending(botid int) ([]AlgoTransaction, error) {
 func GetUniqueAlgoTransaction() ([]int, error) {
 	query := `
 	SELECT DISTINCT botid
-	FROM testing
+	FROM transactions
 	`
 	var botids []int
 
 	rows, err := db.Query(query)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			return nil, fmt.Errorf("Failed to retrieve testing algos: %v", err)
+			return nil, fmt.Errorf("Failed to retrieve transactions algos: %v", err)
 		}
 	}
 	defer rows.Close()
@@ -259,7 +258,7 @@ func GetUniqueAlgoTransaction() ([]int, error) {
 
 func EraseTransaction() error {
 	query := `
-		DELETE FROM testing
+		DELETE FROM transactions
 		WHERE sellvalue IS NULL
 	`
 
@@ -289,7 +288,7 @@ func GetAllAlgoStatsLive() ([]AlgoStats, error) {
 	rows, err := db.Query(query)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			return nil, fmt.Errorf("Failed to retrieve testing algos: %v", err)
+			return nil, fmt.Errorf("Failed to retrieve transactions algos: %v", err)
 		}
 	}
 	defer rows.Close()

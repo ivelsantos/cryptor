@@ -126,7 +126,6 @@ func GetMinNotional(apikey, secretkey, ticker string) (float64, error) {
 }
 
 func GetDepth(apikey, secretkey, ticker string) (float64, float64, error) {
-	binance.UseTestnet = true
 	client := binance.NewClient(apikey, secretkey)
 
 	res, err := client.NewDepthService().Symbol(ticker).Do(context.Background())

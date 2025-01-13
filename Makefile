@@ -4,11 +4,8 @@
 run: build
 	@./bin/cryptor
 
-build : template
+build : grammar
 	@go build -o bin/cryptor
-
-template: grammar
-	@templ generate
 
 grammar: $(wildcard *.peg)
 	@pigeon -o lang/lang.go lang/lang.peg
