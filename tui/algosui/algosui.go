@@ -17,6 +17,8 @@ type model struct {
 	previousModel tea.Model
 	keys          keyMap
 	help          help.Model
+	height        int
+	width         int
 }
 
 func AlgosNew(user string, previousModel tea.Model) model {
@@ -41,6 +43,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
 	case refreshMsg:
 		index_row := m.table.Cursor()
 
