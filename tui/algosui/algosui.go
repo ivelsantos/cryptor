@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ivelsantos/cryptor/tui/createalgoui"
+	"golang.org/x/term"
 )
 
 type model struct {
@@ -25,6 +26,9 @@ func AlgosNew(user string, previousModel tea.Model) model {
 	t := getAlgosTable(user)
 	id, _ := strconv.Atoi(t.SelectedRow()[0])
 	algoInfo := algoInfoNew(id)
+
+	width, height, _ := term.GetSize(0)
+
 	return model{
 		user:          user,
 		table:         t,
@@ -32,6 +36,8 @@ func AlgosNew(user string, previousModel tea.Model) model {
 		previousModel: previousModel,
 		keys:          keys,
 		help:          help.New(),
+		width:         width,
+		height:        height,
 	}
 }
 
@@ -121,11 +127,11 @@ func (m model) View() string {
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("63")).
 		BorderRight(true).
-		Width(77).
-		Height(20)
+		Width(int(float64(m.width) * 0.50)).
+		Height(int(float64(m.height) * 0.9))
 
 	var algoStyle = lipgloss.NewStyle().
-		Width(66).
+		Width(int(float64(m.width) * 0.45)).
 		MarginLeft(5)
 
 	var helpStyle = lipgloss.NewStyle().
