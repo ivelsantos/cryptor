@@ -9,6 +9,7 @@ import (
 	"github.com/ivelsantos/cryptor/models"
 )
 
+// algo: bot to backtest; window_size: days to backtest
 func BackTesting(algo models.Algor, window_size int) error {
 	var err error
 
@@ -29,22 +30,29 @@ func BackTesting(algo models.Algor, window_size int) error {
 		}
 
 		// LOGGING
-		index := i + 1
-		if (index % 1440) == 0 {
-			log.Printf("\tDay %v\n", index/1440)
-		}
+		// index := i + 1
+		// if (index % 1440) == 0 {
+		// 	log.Printf("\tDay %v\n", index/1440)
+		// }
 	}
 
 	days := len(models.Backtesting_Data) / 1440
 	priceStart := models.Backtesting_Data[0].Close
 	priceEnd := models.Backtesting_Data[len(models.Backtesting_Data)-1].Close
 	metrics := models.Backtesting_Transactions.Metrics(days, priceStart, priceEnd)
+	metrics.Window = window_size
+	metrics.Botid = algo.Id
 
-	log.Printf("\tNumber of trades: %v\n", len(models.Backtesting_Transactions.Id))
-	log.Printf("\tAverage trade time: %v\n", metrics.Avg_trade_time/60)
-	log.Printf("\tDaily return: %.4f\n", metrics.Daily_return)
-	log.Printf("\tTicket daily return: %.4f\n", metrics.Ticket_Daily_return)
-	log.Printf("\tSucess rate: %.4f\n", metrics.Sucess_rate)
+	err = models.InsertMetricsBacktesting(metrics)
+	if err != nil {
+		log.Fatalf("%v: Backtesting error: %v\n", algo.Name, err)
+	}
+
+	// log.Printf("\tNumber of trades: %v\n", len(models.Backtesting_Transactions.Id))
+	// log.Printf("\tAverage trade time: %v\n", metrics.Avg_trade_time/60)
+	// log.Printf("\tDaily return: %.4f\n", metrics.Daily_return)
+	// log.Printf("\tTicket daily return: %.4f\n", metrics.Ticket_Daily_return)
+	// log.Printf("\tSucess rate: %.4f\n", metrics.Sucess_rate)
 
 	models.Backtesting_Data = []binance.Kline{}
 	models.Backtesting_Prov_Data = []binance.Kline{}

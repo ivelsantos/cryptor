@@ -21,10 +21,12 @@ type AlgoBacktesting struct {
 }
 
 type ResultBacktesting struct {
+	Botid               int
 	Daily_return        float64
 	Ticket_Daily_return float64
 	Sucess_rate         float64
 	Avg_trade_time      int64
+	Window              int
 }
 
 var Backtesting_Transactions AlgoBacktesting
@@ -178,4 +180,67 @@ func (a *AlgoBacktesting) last(field string) any {
 	default:
 		return struct{}{}
 	}
+}
+
+func InsertBacktesting(algo Algor) error {
+	query := `
+		INSERT INTO backtesting (botid)
+		VALUES (?)
+	`
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return fmt.Errorf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(algo.Id)
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec(algo.Id)
+	}
+	if err != nil {
+		return fmt.Errorf("Failed to execute statement: %v", err)
+	}
+
+	return nil
+}
+
+func InsertMetricsBacktesting(mt ResultBacktesting) error {
+	query := `
+		UPDATE backtesting
+		SET daily_return = ?,
+			ticket_daily_return = ?
+			sucess_rate = ?
+			avg_trade_time = ?
+			window = ?
+		WHERE botid = ?
+	`
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return fmt.Errorf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(mt.Daily_return, mt.Ticket_Daily_return, mt.Sucess_rate, mt.Avg_trade_time, mt.Window, mt.Botid)
+	for checkSqlBusy(err) {
+		_, err = stmt.Exec(mt.Daily_return, mt.Ticket_Daily_return, mt.Sucess_rate, mt.Avg_trade_time, mt.Window, mt.Botid)
+	}
+	if err != nil {
+		return fmt.Errorf("Failed to execute statement: %v", err)
+	}
+
+	return nil
+}
+
+func eraseBacktestingByBotid(botid int) error {
+	query := `
+		DELETE FROM backtesting
+		WHERE botid = ?`
+
+	_, err := db.Exec(query, botid)
+	if err != nil {
+		return fmt.Errorf("Failed to delete backtesting: %v", err)
+	}
+
+	return nil
 }

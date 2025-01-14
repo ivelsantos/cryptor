@@ -58,6 +58,11 @@ func InitDB(filename string) error {
 		return err
 	}
 
+	err = createBacktestingTable(db)
+	if err != nil {
+		return err
+	}
+
 	return db.Ping()
 }
 
@@ -172,6 +177,25 @@ func createTransactionsTable(db *sql.DB) error {
 		buytime INTEGER NOT NULL,
 		sellvalue REAL,
 		selltime INTEGER
+	)`
+
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("Failed to create table: %v", err)
+	}
+
+	return nil
+}
+
+func createBacktestingTable(db *sql.DB) error {
+	query := `
+	CREATE TABLE IF NOT EXISTS backtesting (
+		botid INTEGER PRIMARY KEY,
+		daily_return REAL,
+		ticket_daily_return REAL,
+		sucess_rate REAL,
+		avg_trade_time REAL,
+		window INTEGER
 	)`
 
 	_, err := db.Exec(query)

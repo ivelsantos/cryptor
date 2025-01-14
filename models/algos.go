@@ -140,6 +140,11 @@ func DeleteAlgo(id int, owner string) error {
 		return err
 	}
 
+	err = eraseBacktestingByBotid(id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
