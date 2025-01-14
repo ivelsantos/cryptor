@@ -71,6 +71,13 @@ var keys = keyMap{
 
 type refreshMsg struct{}
 
+type sessionState uint
+
+const (
+	tableView sessionState = iota
+	algoInfoView
+)
+
 func DoRefresh() tea.Msg {
 	time.Sleep(5 * time.Second)
 	return refreshMsg{}

@@ -20,6 +20,7 @@ type model struct {
 	help          help.Model
 	height        int
 	width         int
+	state         sessionState
 }
 
 func AlgosNew(user string, previousModel tea.Model) model {
@@ -38,6 +39,7 @@ func AlgosNew(user string, previousModel tea.Model) model {
 		help:          help.New(),
 		width:         width,
 		height:        height,
+		state:         tableView,
 	}
 }
 
@@ -62,7 +64,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, DoRefresh
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "enter":
+			if m.state == tableView {
+				m.state = algoInfoView
+			}
+			return m, nil
 		case "esc":
+			if m.state == algoInfoView {
+				m.state = tableView
+				return m, nil
+			}
 			return m.previousModel, nil
 
 		case "?":
@@ -108,11 +119,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, DoRefresh
 		}
 	}
-	m.table, cmd = m.table.Update(msg)
-
-	// Update algoInfo view
-	id, _ := strconv.Atoi(m.table.SelectedRow()[0])
-	m.algoInfo = algoInfoNew(id)
+	if m.state == tableView {
+		m.table, cmd = m.table.Update(msg)
+		// Update algoInfo view
+		id, _ := strconv.Atoi(m.table.SelectedRow()[0])
+		m.algoInfo = algoInfoNew(id)
+	} else {
+		m.algoInfo, cmd = m.algoInfo.Update(msg)
+	}
 
 	return m, cmd
 }
@@ -137,7 +151,16 @@ func (m model) View() string {
 	var helpStyle = lipgloss.NewStyle().
 		Align(lipgloss.Bottom)
 
-	s := lipgloss.JoinHorizontal(lipgloss.Top, tableStyle.Render(m.table.View()), algoStyle.Render(m.algoInfo.View()))
+	var focusedStyle = lipgloss.NewStyle().
+		BorderStyle(lipgloss.DoubleBorder()).
+		BorderForeground(lipgloss.Color("14"))
+
+	var s string
+	if m.state == tableView {
+		s = lipgloss.JoinHorizontal(lipgloss.Top, focusedStyle.Render(tableStyle.Render(m.table.View())), algoStyle.Render(m.algoInfo.View()))
+	} else {
+		s = lipgloss.JoinHorizontal(lipgloss.Top, tableStyle.Render(m.table.View()), focusedStyle.Render(algoStyle.Render(m.algoInfo.View())))
+	}
 	s += "\n"
 	s += helpStyle.Render(m.help.View(m.keys))
 
