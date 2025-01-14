@@ -133,36 +133,40 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 
-	var style = lipgloss.NewStyle().
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("63"))
-
 	var tableStyle = lipgloss.NewStyle().
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("63")).
-		BorderRight(true).
 		Width(int(float64(m.width) * 0.50)).
 		Height(int(float64(m.height) * 0.9))
 
 	var algoStyle = lipgloss.NewStyle().
 		Width(int(float64(m.width) * 0.45)).
+		Height(int(float64(m.height) * 0.9)).
 		MarginLeft(5)
 
 	var helpStyle = lipgloss.NewStyle().
 		Align(lipgloss.Bottom)
 
 	var focusedStyle = lipgloss.NewStyle().
-		BorderStyle(lipgloss.DoubleBorder()).
+		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("14"))
+
+	var noFocusedStyle = lipgloss.NewStyle().
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("0"))
 
 	var s string
 	if m.state == tableView {
-		s = lipgloss.JoinHorizontal(lipgloss.Top, focusedStyle.Render(tableStyle.Render(m.table.View())), algoStyle.Render(m.algoInfo.View()))
+		s = lipgloss.JoinHorizontal(lipgloss.Top,
+			focusedStyle.Render(tableStyle.Render(m.table.View())),
+			noFocusedStyle.Render(algoStyle.Render(m.algoInfo.View())),
+		)
 	} else {
-		s = lipgloss.JoinHorizontal(lipgloss.Top, tableStyle.Render(m.table.View()), focusedStyle.Render(algoStyle.Render(m.algoInfo.View())))
+		s = lipgloss.JoinHorizontal(lipgloss.Top,
+			noFocusedStyle.Render(tableStyle.Render(m.table.View())),
+			focusedStyle.Render(algoStyle.Render(m.algoInfo.View())),
+		)
 	}
 	s += "\n"
 	s += helpStyle.Render(m.help.View(m.keys))
 
-	return style.Render(s)
+	return s
 }
