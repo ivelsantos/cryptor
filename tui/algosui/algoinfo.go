@@ -7,29 +7,33 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ivelsantos/cryptor/models"
+	back "github.com/ivelsantos/cryptor/tui/algosui/tab_backtesting"
 )
 
 type algoInfoModel struct {
-	Tabs       []string
-	TabContent []string
-	activeTab  int
-	Algo       models.Algor
-	Text       textarea.Model
+	Tabs        []string
+	TabContent  []string
+	activeTab   int
+	Algo        models.Algor
+	Code        textarea.Model
+	Backtesting tea.Model
 }
 
 func algoInfoNew(botid int) tea.Model {
 	model := algoInfoModel{}
 	model.Algo, _ = models.GetAlgoById(botid)
+	model.Backtesting = back.New_TabBacktesting()
 
-	model.Text = textarea.New()
-	model.Text.ShowLineNumbers = true
-	model.Text.SetValue(model.Algo.Buycode)
-	model.Text.MaxHeight = 15
-	model.Text.SetHeight(15)
-	model.Text.SetWidth(50)
+	// Setting the code view
+	model.Code = textarea.New()
+	model.Code.ShowLineNumbers = true
+	model.Code.SetValue(model.Algo.Buycode)
+	model.Code.MaxHeight = 15
+	model.Code.SetHeight(15)
+	model.Code.SetWidth(50)
 
 	model.Tabs = []string{"Code", "Live Performance", "Testing Performance", "Backtesting"}
-	model.TabContent = []string{model.Text.View(), "Blush Tab", "Eye Shadow Tab", "Mascara Tab"}
+	model.TabContent = []string{model.Code.View(), "Blush Tab", "Eye Shadow Tab", model.Backtesting.View()}
 
 	return model
 }

@@ -119,8 +119,8 @@ func Buy(algo models.Algor, index any, args string) (bool, error) {
 		}
 
 		// Send the order
-		// orderValueStr := strconv.FormatFloat(orderValue, 'f', -1, 64)
-		orderValueStr := fmt.Sprintf("%.2f", orderValue)
+		orderValue = math.Floor(orderValue*100) / 100
+		orderValueStr := strconv.FormatFloat(orderValue, 'f', -1, 64)
 		order, err := testnet.Buy(account.ApiKey_test, account.SecretKey_test, ticket, orderValueStr)
 		if err != nil {
 			return false, err
