@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"fmt"
 	"math"
 	"strconv"
@@ -232,6 +233,28 @@ func InsertMetricsBacktesting(mt ResultBacktesting) error {
 	return nil
 }
 
+func GetBacktestingById(botid int) (ResultBacktesting, error) {
+	query := `
+	SELECT * FROM backtesting
+	WHERE botid = ?
+	`
+	var mt ResultBacktesting
+
+	row := db.QueryRow(query, botid)
+
+	err := row.Scan(&mt.Botid, &mt.Daily_return, &mt.Ticket_Daily_return, &mt.Sucess_rate, &mt.Avg_trade_time, &mt.Window)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Because sqlite3 rowid autoincrement starts in 1 we can do that
+			// Therefore, if mt.Botid == 0 there is not backtesting data on db for a given botid
+			mt.Botid = 0
+			return mt, nil
+		}
+		return mt, fmt.Errorf("Failed to retrieve backtesting: %v", err)
+	}
+
+	return mt, nil
+}
 func eraseBacktestingByBotid(botid int) error {
 	query := `
 		DELETE FROM backtesting
