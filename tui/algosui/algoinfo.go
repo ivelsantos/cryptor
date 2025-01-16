@@ -33,7 +33,7 @@ func algoInfoNew(botid int) tea.Model {
 	model.Code.SetWidth(50)
 
 	model.Tabs = []string{"Code", "Live Performance", "Testing Performance", "Backtesting"}
-	model.TabContent = []string{model.Code.View(), "Blush Tab", "Eye Shadow Tab", model.Backtesting.View()}
+	model.TabContent = []string{model.Code.View(), "Live Tab", "Testing Tab", model.Backtesting.View()}
 
 	return model
 }
