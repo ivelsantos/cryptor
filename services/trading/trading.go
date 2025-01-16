@@ -24,6 +24,9 @@ func Trading() error {
 		var wg sync.WaitGroup
 
 		for _, algo := range algos {
+			if algo.State == "waiting" {
+				continue
+			}
 			wg.Add(1)
 			go func(algo models.Algor) {
 				defer wg.Done()
